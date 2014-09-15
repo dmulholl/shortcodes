@@ -40,7 +40,7 @@ Shortcode functions can accept any number of arguments. All arguments are passed
 To process the shortcodes in a string create a `Parser` object and call its `.parse()` method:
 
     parser = shortcodes.Parser()
-    parsed = parser.parse(text)
+    output = parser.parse(text)
 
 You can process multiple strings with a single `Parser` object. The constructor takes a number of optional arguments allowing you to customize the syntax of your shortcodes:
 
