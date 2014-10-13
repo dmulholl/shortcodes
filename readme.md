@@ -2,7 +2,7 @@
 Shortcodes
 ==========
 
-A customizable shortcode parser in Python. Useful as a drop-in component in a text processing application.
+A customizable shortcode parser in Python. Useful as a drop-in component in text processing applications.
 
 Supports shortcodes with space-separated positional and keyword arguments:
 
