@@ -35,7 +35,7 @@ Positional and keyword arguments are passed as strings. The handler function
 itself should return a string.
 
 To parse an input string containing shortcodes, create a Parser() object and
-call its parse method:
+call its parse() method:
 
     parser = shortcodes.Parser()
     output = parser.parse(text, context=None)
@@ -49,7 +49,7 @@ License: This work has been placed in the public domain.
 
 """
 
-__version__ = "2.0.0dev"
+__version__ = "2.0.0"
 
 
 import re
