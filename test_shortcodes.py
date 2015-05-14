@@ -54,14 +54,14 @@ class InsertionTests(unittest.TestCase):
 class EscapingTests(unittest.TestCase):
 
     def test_escaped_shortcode(self):
-        text = r'![% foo %]'
+        text = r'\[% foo %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '[% foo %]')
 
     def test_double_escaped_shortcode(self):
-        text = r'!![% foo %]'
+        text = r'\\[% foo %]'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '![% foo %]')
+        self.assertEqual(rendered, r'\[% foo %]')
 
 
 class ArgumentTests(unittest.TestCase):

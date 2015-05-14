@@ -181,7 +181,7 @@ class Parser:
 
     """
 
-    def __init__(self, start='[%', end='%]', esc='!'):
+    def __init__(self, start='[%', end='%]', esc='\\'):
         self.start = start
         self.esc_start = esc + start
         self.len_start = len(start)
