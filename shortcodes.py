@@ -28,11 +28,21 @@ Handler functions should accept four arguments:
     `context`: an arbitrary context object
     `content`: the shortcode's content as a string in the case of block-scoped
                shortcodes, or None in the case of atomic shortcodes
-    `pargs`:   a list of positional arguments
-    `kwargs`:  a dictionary of keyword arguments
+    `pargs`:   a list of the shortcode's positional arguments
+    `kwargs`:  a dictionary of the shortcode's keyword arguments
 
 Positional and keyword arguments are passed as strings. The handler function
 itself should return a string.
+
+To parse an input string containing shortcodes, create a Parser() object and
+call its parse method:
+
+    parser = shortcodes.Parser()
+    output = parser.parse(text, context=None)
+
+A single Parser() object can process multiple input strings. The optional
+`context` argument accepts an arbitrary object to pass on to the registered
+handler functions.
 
 Author: Darren Mulholland <dmulholland@outlook.ie>
 License: This work has been placed in the public domain.
