@@ -2,21 +2,21 @@
 Shortcodes
 ==========
 
-A customizable shortcode parser in Python. Useful as a drop-in component in text processing applications.
+A customizable shortcode parser in Python 3. Useful as a drop-in component in text processing applications.
 
 Supports shortcodes with space-separated positional and keyword arguments:
 
-    {% tag arg1 "arg 2" key1=arg3 key2="arg 4" %}
+    [% tag arg1 "arg 2" key1=arg3 key2="arg 4" %]
 
-Shortcodes can have block scope and can be nested to any depth. Innermost shortcodes are processed first:
+Shortcodes can be atomic or block-scoped and can be nested to any depth. Innermost shortcodes are processed first:
 
-    {% tag %}
-        Content can contain {% more %} shortcodes.
-    {% endtag %}
+    [% tag %]
+        ... this shortcode's content can contain [% more %] shortcodes ...
+    [% endtag %]
 
 Shortcode syntax is customizable:
 
-    [tag arg="foo"] ... [/tag]
+    <tag arg="foo"> ... </tag>
 
 
 Usage
@@ -24,29 +24,46 @@ Usage
 
 ### Registering Shortcodes ###
 
-Every shortcode tag is associated with a handler function. To create a new shortcode simply register its handler function using the `@register` decorator:
+Every shortcode is associated with a handler function. You create a new shortcode by registering its handler function with the `@register` decorator:
 
     @shortcodes.register('tag')
+    def handler(context=None, content=None, pargs=[], kwargs={}):
+        ...
 
-Specifying a closing tag will give the new shortcode block scope:
+Specify a closing tag to give the new shortcode block scope:
 
     @shortcodes.register('tag', 'endtag')
+    def handler(context=None, content=None, pargs=[], kwargs={}):
+        ...
 
-Shortcode functions can accept any number of arguments. All arguments are passed as strings and the function itself should return a string. Shortcodes with block scope receive their content as their first argument.
+Handler functions should accept four arguments:
+
+* `context`: an arbitrary context object
+* `content`: the shortcode's content as a string in the case of block-scoped shortcodes, or `None` in the case of atomic shortcodes
+* `pargs`: a list of the shortcode's positional arguments
+* `kwargs`: a dictionary of the shortcode's keyword arguments
+
+Positional and keyword arguments are passed as strings. The handler function
+itself should return a string.
 
 
 ### Processing Text ###
 
-To process the shortcodes in a string create a `Parser` object and call its `.parse()` method:
+To parse an input string containing shortcodes, create a `Parser` object and call its `.parse()` method:
 
     parser = shortcodes.Parser()
-    output = parser.parse(text)
+    output = parser.parse(text, context=None)
 
-You can process multiple strings with a single `Parser` object. The constructor takes a number of optional arguments allowing you to customize the syntax of your shortcodes:
+A single `Parser` object can process multiple input strings. The optional `context` argument accepts an arbitrary object to pass on to the registered handler functions.
 
-    Parser(start='{%', end='%}', esc='!')
 
-The escape sequence - a single `!` by default - allows you to escape shortcodes in your text, i.e. the escaped shortcode `!{% foo %}` will be rendered as the literal text `{% foo %}`.
+### Customizing Shortcode Syntax ###
+
+The `Parser` object's constructor accepts a number of optional arguments which you can use to customize the syntax of your shortcodes:
+
+    parser = shortcodes.Parser(start='[%', end='%]', esc='\\')
+
+The escape sequence - by default, a single backslash - allows you to escape shortcodes in your text, i.e. the escaped shortcode `\[% foo %]` will be rendered as the literal text `[% foo %]`.
 
 
 ### Exceptions ###
@@ -73,35 +90,29 @@ The following exception types may be raised by the module:
 Example
 -------
 
-Let's make a simple shortcode to mark a block of text as an HTML code sample. We'll use the word `code` as our tag.
+Let's make a very simple shortcode to mark a block of text as an HTML code sample. We'll use the word `code` as our tag.
 
 Our shortcode will accept a single argument - the name of the programming language - and will have block scope as it needs to enclose a block of content. We'll choose the word `endcode` as our closing tag.
 
     import shortcodes
 
     @shortcodes.register('code', 'endcode')
-    def mark_as_code(content, lang):
-        return '<pre class="%s">%s</pre>' % (lang, content)
+    def code_handler(context, content, pargs, kwargs):
+        return '<pre class="%s">%s</pre>' % (pargs[0], content)
 
-We're done. Now we can try it with some sample text:
+We're done. Now we can try it with some input text:
 
-    {% code python %}
+    [% code python %]
     def hello_world():
         print('hello, world')
-    {% endcode %}
+    [% endcode %]
 
-Creating a `Parser` object and running the input through its `.parse()` method gives us back the following string:
+If we create a `Parser` object and run the input above through its `.parse()` method it will give us back the following output:
 
     <pre class="python">
     def hello_world():
         print('hello, world')
     </pre>
-
-
-Requirements
-------------
-
-Requires Python 3.
 
 
 License
