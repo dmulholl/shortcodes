@@ -7,21 +7,20 @@ import shortcodes
 
 
 @shortcodes.register('foo')
-def foo():
-    return 'foo'
+def foo(context, content, pargs, kwargs):
+    return 'bar'
 
 
 @shortcodes.register('wrap', 'endwrap')
-def wrap(content, tag):
-    return '<%s>%s</%s>' % (tag, content, tag)
+def wrap(context, content, pargs, kwargs):
+    return '<%s>%s</%s>' % (pargs[0], content, pargs[0])
 
 
 @shortcodes.register('args')
-def args(*pargs, **kwargs):
-    arglist = list(pargs)
+def args(context, content, pargs, kwargs):
     for key, value in sorted(kwargs.items()):
-        arglist.append(key + ':' + value)
-    return '|'.join(arglist)
+        pargs.append(key + ':' + value)
+    return '|'.join(pargs)
 
 
 class InsertionTests(unittest.TestCase):
@@ -39,12 +38,12 @@ class InsertionTests(unittest.TestCase):
     def test_simple_insertion(self):
         text = '{% foo %}'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, 'foo')
+        self.assertEqual(rendered, 'bar')
 
     def test_simple_insertion_with_text(self):
         text = '..{% foo %}..'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '..foo..')
+        self.assertEqual(rendered, '..bar..')
 
 
 class EscapingTests(unittest.TestCase):
@@ -83,17 +82,17 @@ class NestingTests(unittest.TestCase):
     def test_wrapping_shortcode(self):
         text = '{% wrap div %}{% foo %}{% endwrap %}'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div>foo</div>')
-    
+        self.assertEqual(rendered, '<div>bar</div>')
+
     def test_wrapping_wrapping_shortcode(self):
         text = '{% wrap div %}{% wrap p %}{% foo %}{% endwrap %}{% endwrap %}'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div><p>foo</p></div>')
-    
+        self.assertEqual(rendered, '<div><p>bar</p></div>')
+
     def test_wrapping_and_text_mix(self):
         text = '{% wrap div %}..{% wrap p %}.{% foo %}.{% endwrap %}..{% endwrap %}'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div>..<p>.foo.</p>..</div>')
+        self.assertEqual(rendered, '<div>..<p>.bar.</p>..</div>')
 
 
 if __name__ == '__main__':

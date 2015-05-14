@@ -7,15 +7,39 @@ Parses shortcodes of the form:
 
 Shortcodes can be atomic or block-scoped and can be nested to any depth.
 Innermost shortcodes are processed first.
-    
-String escapes inside quoted arguments are decoded; unquoted arguments 
+
+String escapes inside quoted arguments are decoded; unquoted arguments
 are preserved in their raw state.
 
+Register handler functions using the @register decorator:
+
+    @shortcodes.register('tag')
+    def handler(context=None, content=None, pargs=[], kwargs={}):
+        ...
+
+Specify an end-tag to create a shortcode with block scope:
+
+    @shortcodes.register('tag', 'endtag')
+    def handler(context=None, content=None, pargs=[], kwargs={}):
+        ...
+
+Hadler functions should accept four arguments:
+
+    `context`: an arbitrary context object
+    `content`: the shortcode's content as a string in the case of block-scoped
+               shortcodes, or None in the case of atomic shortcodes
+    `pargs`:   a list of positional arguments
+    `kwargs`:  a dictionary of keyword arguments
+
+Positional and keyword arguments are passed as strings. The handler function
+itself should return a string.
+
+Author: Darren Mulholland <dmulholland@outlook.ie>
 License: This work has been placed in the public domain.
 
 """
 
-__version__ = "1.0.0"
+__version__ = "2.0.0dev"
 
 
 import re
@@ -24,15 +48,6 @@ import sys
 
 # Stores registered shortcode functions indexed by tag.
 tagmap = { 'endtags': [] }
-
-
-# Decode string escape sequences.
-# We do a version test here to allow for Python 2 support, but this 
-# should be regarded as an experimental, untested feature.
-if sys.version_info < (3, 0):
-    decode = lambda s: s.decode('string_escape')
-else:
-    decode = lambda s: bytes(s, 'utf-8').decode('unicode_escape')
 
 
 def register(tag, end_tag=None):
@@ -47,21 +62,26 @@ def register(tag, end_tag=None):
     return register_function
 
 
+def decode(s):
+    """ Decode string escape sequences. """
+    return bytes(s, 'utf-8').decode('unicode_escape')
+
+
 class ShortcodeError(Exception):
     """ Base class for all exceptions raised by the module. """
     pass
-    
-    
+
+
 class NestingError(ShortcodeError):
     """ Raised if the parser detects unbalanced tags. """
     pass
-    
+
 
 class InvalidTagError(ShortcodeError):
     """ Raised if the parser encounters an unknown tag. """
     pass
-    
-    
+
+
 class RenderingError(ShortcodeError):
     """ Raised if an attempt to call a shortcode function fails. """
     pass
@@ -70,14 +90,14 @@ class RenderingError(ShortcodeError):
 class Node:
 
     """ Input text is parsed into a tree of Node objects. """
-    
+
     def __init__(self):
         self.children = []
-        
-    def render(self):
-        return ''.join(child.render() for child in self.children)
-    
-    
+
+    def render(self, context):
+        return ''.join(child.render(context) for child in self.children)
+
+
 class TextNode(Node):
 
     """ Plain text content. """
@@ -85,7 +105,7 @@ class TextNode(Node):
     def __init__(self, text):
         self.text = text
 
-    def render(self):
+    def render(self, context):
         return self.text
 
 
@@ -105,18 +125,18 @@ class ShortcodeNode(Node):
         |
         (\S+)
     """, re.VERBOSE)
-    
+
     def __init__(self, tag, argstring):
         self.tag = tag
         self.func = tagmap[tag]['func']
         self.pargs, self.kwargs = self.parse_args(argstring)
-        
-    def render(self):
+
+    def render(self, context):
         try:
-            return str(self.func(*self.pargs, **self.kwargs))
+            return str(self.func(context, None, self.pargs, self.kwargs))
         except Exception as e:
             raise RenderingError('error rendering [%s] tag' % self.tag)
-        
+
     def parse_args(self, argstring):
         pargs, kwargs = [], {}
         for match in self.argregex.finditer(argstring):
@@ -132,29 +152,24 @@ class ShortcodeNode(Node):
             else:
                 pargs.append(match.group(7))
         return pargs, kwargs
-        
-    
+
+
 class ScopedShortcodeNode(ShortcodeNode):
 
-    """ A block-scoped shortcode. 
-
-    The shortcode's content is passed as the first argument to the
-    handler function.
-
-    """
+    """ A block-scoped shortcode. """
 
     def __init__(self, tag, argstring):
         ShortcodeNode.__init__(self, tag, argstring)
         self.children = []
-        
-    def render(self):
-        content = ''.join(child.render() for child in self.children)
+
+    def render(self, context):
+        content = ''.join(child.render(context) for child in self.children)
         try:
-            return str(self.func(content, *self.pargs, **self.kwargs))
+            return str(self.func(context, content, self.pargs, self.kwargs))
         except:
             raise RenderingError('error rendering [%s] tag' % self.tag)
 
-    
+
 class Parser:
 
     """ Parses text and renders shortcodes.
@@ -162,7 +177,7 @@ class Parser:
     A single Parser instance can parse mulitple input strings.
 
         parser = Parser()
-        output = parser.parse(input)
+        output = parser.parse(text, context)
 
     """
 
@@ -177,13 +192,13 @@ class Parser:
             re.escape(start),
             re.escape(end),
         ))
-        
+
     def tokenize(self, text):
         for token in self.regex.split(text):
             if token:
                 yield token
-                
-    def parse(self, text):
+
+    def parse(self, text, context=None):
         stack = [Node()]
         expecting = []
         for token in self.tokenize(text):
@@ -218,4 +233,4 @@ class Parser:
                 stack[-1].children.append(TextNode(token))
         if expecting:
             raise NestingError('expecting [%s]' % expecting[-1])
-        return stack.pop().render()
+        return stack.pop().render(context)
