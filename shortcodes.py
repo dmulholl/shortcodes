@@ -3,7 +3,7 @@ A generic, customizable shortcode parser.
 
 Parses shortcodes of the form:
 
-    {% tag arg1 'arg 2' key1=arg3 key2='arg 4' %} [ ... {% endtag %} ]
+    [% tag arg1 'arg 2' key1=arg3 key2='arg 4' %] ... [% endtag %]
 
 Shortcodes can be atomic or block-scoped and can be nested to any depth.
 Innermost shortcodes are processed first.
@@ -23,7 +23,7 @@ Specify an end-tag to create a shortcode with block scope:
     def handler(context=None, content=None, pargs=[], kwargs={}):
         ...
 
-Hadler functions should accept four arguments:
+Handler functions should accept four arguments:
 
     `context`: an arbitrary context object
     `content`: the shortcode's content as a string in the case of block-scoped
@@ -181,7 +181,7 @@ class Parser:
 
     """
 
-    def __init__(self, start='{%', end='%}', esc='!'):
+    def __init__(self, start='[%', end='%]', esc='!'):
         self.start = start
         self.esc_start = esc + start
         self.len_start = len(start)

@@ -41,12 +41,12 @@ class InsertionTests(unittest.TestCase):
         self.assertEqual(rendered, 'foo')
 
     def test_simple_insertion(self):
-        text = '{% foo %}'
+        text = '[% foo %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, 'bar')
 
     def test_simple_insertion_with_text(self):
-        text = '..{% foo %}..'
+        text = '..[% foo %]..'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '..bar..')
 
@@ -54,25 +54,25 @@ class InsertionTests(unittest.TestCase):
 class EscapingTests(unittest.TestCase):
 
     def test_escaped_shortcode(self):
-        text = r'!{% foo %}'
+        text = r'![% foo %]'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '{% foo %}')
+        self.assertEqual(rendered, '[% foo %]')
 
     def test_double_escaped_shortcode(self):
-        text = r'!!{% foo %}'
+        text = r'!![% foo %]'
         rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '!{% foo %}')
+        self.assertEqual(rendered, '![% foo %]')
 
 
 class ArgumentTests(unittest.TestCase):
 
     def test_args_with_double_quoted_strings(self):
-        text = '{% args arg1 "arg 2" key1=arg3 key2="arg 4" %}'
+        text = '[% args arg1 "arg 2" key1=arg3 key2="arg 4" %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, 'arg1|arg 2|key1:arg3|key2:arg 4')
 
     def test_args_with_single_quoted_strings(self):
-        text = "{% args arg1 'arg 2' key1=arg3 key2='arg 4' %}"
+        text = "[% args arg1 'arg 2' key1=arg3 key2='arg 4' %]"
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, 'arg1|arg 2|key1:arg3|key2:arg 4')
 
@@ -80,22 +80,22 @@ class ArgumentTests(unittest.TestCase):
 class NestingTests(unittest.TestCase):
 
     def test_wrapping_simple_text(self):
-        text = '{% wrap div %}foo{% endwrap %}'
+        text = '[% wrap div %]foo[% endwrap %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '<div>foo</div>')
 
     def test_wrapping_shortcode(self):
-        text = '{% wrap div %}{% foo %}{% endwrap %}'
+        text = '[% wrap div %][% foo %][% endwrap %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '<div>bar</div>')
 
     def test_wrapping_wrapping_shortcode(self):
-        text = '{% wrap div %}{% wrap p %}{% foo %}{% endwrap %}{% endwrap %}'
+        text = '[% wrap div %][% wrap p %][% foo %][% endwrap %][% endwrap %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '<div><p>bar</p></div>')
 
     def test_wrapping_and_text_mix(self):
-        text = '{% wrap div %}..{% wrap p %}.{% foo %}.{% endwrap %}..{% endwrap %}'
+        text = '[% wrap div %]..[% wrap p %].[% foo %].[% endwrap %]..[% endwrap %]'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '<div>..<p>.bar.</p>..</div>')
 
@@ -103,7 +103,7 @@ class NestingTests(unittest.TestCase):
 class ContextTests(unittest.TestCase):
 
     def test_context_object(self):
-        text = '{% context %}'
+        text = '[% context %]'
         rendered = shortcodes.Parser().parse(text, 101)
         self.assertEqual(rendered, '101')
 
