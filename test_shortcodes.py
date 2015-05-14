@@ -7,20 +7,25 @@ import shortcodes
 
 
 @shortcodes.register('foo')
-def foo(context, content, pargs, kwargs):
+def foo_handler(context, content, pargs, kwargs):
     return 'bar'
 
 
 @shortcodes.register('wrap', 'endwrap')
-def wrap(context, content, pargs, kwargs):
+def wrap_handler(context, content, pargs, kwargs):
     return '<%s>%s</%s>' % (pargs[0], content, pargs[0])
 
 
 @shortcodes.register('args')
-def args(context, content, pargs, kwargs):
+def args_handler(context, content, pargs, kwargs):
     for key, value in sorted(kwargs.items()):
         pargs.append(key + ':' + value)
     return '|'.join(pargs)
+
+
+@shortcodes.register('context')
+def context_handler(context, content, pargs, kwargs):
+    return str(context)
 
 
 class InsertionTests(unittest.TestCase):
@@ -93,6 +98,14 @@ class NestingTests(unittest.TestCase):
         text = '{% wrap div %}..{% wrap p %}.{% foo %}.{% endwrap %}..{% endwrap %}'
         rendered = shortcodes.Parser().parse(text)
         self.assertEqual(rendered, '<div>..<p>.bar.</p>..</div>')
+
+
+class ContextTests(unittest.TestCase):
+
+    def test_context_object(self):
+        text = '{% context %}'
+        rendered = shortcodes.Parser().parse(text, 101)
+        self.assertEqual(rendered, '101')
 
 
 if __name__ == '__main__':
