@@ -49,7 +49,7 @@ License: This work has been placed in the public domain.
 
 """
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 
 import re
@@ -189,6 +189,9 @@ class Parser:
         parser = Parser()
         output = parser.parse(text, context)
 
+    The .parse() method accepts an arbitrary context object which it
+    passes on to the shortcode handler functions.
+
     """
 
     def __init__(self, start='[%', end='%]', esc='\\'):
@@ -203,40 +206,13 @@ class Parser:
             re.escape(end),
         ))
 
-    def tokenize(self, text):
-        for token in self.regex.split(text):
-            if token:
-                yield token
-
     def parse(self, text, context=None):
-        stack = [Node()]
-        expecting = []
+        stack, expecting = [Node()], []
         for token in self.tokenize(text):
             if token.startswith(self.start):
                 content = token[self.len_start:-self.len_end].strip()
                 if content:
-                    tag = content.split(None, 1)[0]
-                    if tag in tagmap['endtags']:
-                        if not expecting:
-                            raise NestingError('not expecting [%s]' % tag)
-                        elif tag == expecting[-1]:
-                            stack.pop()
-                            expecting.pop()
-                        else:
-                            msg = 'expecting [%s], found [%s]'
-                            raise NestingError(msg % (expecting[-1], tag))
-                    elif tag in tagmap:
-                        if tagmap[tag]['endtag']:
-                            node = ScopedShortcodeNode(tag, content[len(tag):])
-                            stack[-1].children.append(node)
-                            stack.append(node)
-                            expecting.append(tagmap[tag]['endtag'])
-                        else:
-                            node = ShortcodeNode(tag, content[len(tag):])
-                            stack[-1].children.append(node)
-                    else:
-                        msg = '[%s] is not a recognised shortcode tag'
-                        raise InvalidTagError(msg % tag)
+                    self.parse_token_content(stack, expecting, content)
             elif token.startswith(self.esc_start):
                 stack[-1].children.append(TextNode(token[self.len_esc:]))
             else:
@@ -244,3 +220,32 @@ class Parser:
         if expecting:
             raise NestingError('expecting [%s]' % expecting[-1])
         return stack.pop().render(context)
+
+    def tokenize(self, text):
+        for token in self.regex.split(text):
+            if token:
+                yield token
+
+    def parse_token_content(self, stack, expecting, content):
+        tag = content.split(None, 1)[0]
+        if tag in tagmap['endtags']:
+            if not expecting:
+                raise NestingError('not expecting [%s]' % tag)
+            elif tag == expecting[-1]:
+                stack.pop()
+                expecting.pop()
+            else:
+                msg = 'expecting [%s], found [%s]'
+                raise NestingError(msg % (expecting[-1], tag))
+        elif tag in tagmap:
+            if tagmap[tag]['endtag']:
+                node = ScopedShortcodeNode(tag, content[len(tag):])
+                stack[-1].children.append(node)
+                stack.append(node)
+                expecting.append(tagmap[tag]['endtag'])
+            else:
+                node = ShortcodeNode(tag, content[len(tag):])
+                stack[-1].children.append(node)
+        else:
+            msg = '[%s] is not a recognised shortcode tag'
+            raise InvalidTagError(msg % tag)
