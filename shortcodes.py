@@ -196,7 +196,7 @@ class Parser:
 
     def __init__(self, start='[%', end='%]', esc='\\'):
         self.start = start
-        self.esc_start = esc + start
+        self.estart = esc + start
         self.len_start = len(start)
         self.len_end = len(end)
         self.len_esc = len(esc)
@@ -207,18 +207,22 @@ class Parser:
         ))
 
     def parse(self, text, context=None):
-        stack, expecting = [Node()], []
+        stack, expecting = [], []
+        stack.append(Node())
+
         for token in self.tokenize(text):
             if token.startswith(self.start):
                 content = token[self.len_start:-self.len_end].strip()
                 if content:
                     self.parse_token_content(stack, expecting, content)
-            elif token.startswith(self.esc_start):
+            elif token.startswith(self.estart):
                 stack[-1].children.append(TextNode(token[self.len_esc:]))
             else:
                 stack[-1].children.append(TextNode(token))
+
         if expecting:
             raise NestingError('expecting [%s]' % expecting[-1])
+
         return stack.pop().render(context)
 
     def tokenize(self, text):
@@ -228,6 +232,7 @@ class Parser:
 
     def parse_token_content(self, stack, expecting, content):
         tag = content.split(None, 1)[0]
+
         if tag in tagmap['endtags']:
             if not expecting:
                 raise NestingError('not expecting [%s]' % tag)
@@ -237,6 +242,7 @@ class Parser:
             else:
                 msg = 'expecting [%s], found [%s]'
                 raise NestingError(msg % (expecting[-1], tag))
+
         elif tag in tagmap:
             if tagmap[tag]['endtag']:
                 node = ScopedShortcodeNode(tag, content[len(tag):])
@@ -246,6 +252,7 @@ class Parser:
             else:
                 node = ShortcodeNode(tag, content[len(tag):])
                 stack[-1].children.append(node)
+
         else:
             msg = '[%s] is not a recognised shortcode tag'
             raise InvalidTagError(msg % tag)
