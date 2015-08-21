@@ -20,7 +20,7 @@ Shortcode syntax is customizable:
 
 ### Registering Shortcodes
 
-Every shortcode has an associated handler function. To create a new shortcode you register its handler function using the `@register` decorator:
+Every shortcode tag has an associated handler function. You can create a new shortcode by registering its handler function using the `@register` decorator:
 
     import shortcodes
 
