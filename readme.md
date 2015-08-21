@@ -16,6 +16,17 @@ Shortcode syntax is customizable:
     <tag arg="foo"> ... </tag>
 
 
+## Installation
+
+You can incorporate the `shortcodes.py` file directly into your Python package. The library is entirely self-contained and its code has been placed in the public domain.
+
+Alternatively, you can install the shortcodes library from the Python package index using `pip`:
+
+    $ pip install shortcodes
+
+Note that this library requires Python 3.
+
+
 ## Usage
 
 ### Registering Shortcodes
