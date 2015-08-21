@@ -9,7 +9,7 @@ Supports shortcodes with space-separated positional and keyword arguments:
 
 Shortcodes can be atomic or block-scoped and can be nested to any depth. Innermost shortcodes are processed first:
 
-    [% tag %] ... content can contain [% more %] shortcodes ... [% endtag %]
+    [% tag %] ... content with [% more %] shortcodes ... [% endtag %]
 
 Shortcode syntax is customizable:
 
