@@ -49,11 +49,12 @@ License: This work has been placed in the public domain.
 
 """
 
-__version__ = "2.0.1"
-
-
 import re
 import sys
+
+
+# Library version number.
+__version__ = "2.0.1"
 
 
 # Stores registered shortcode functions indexed by tag.
