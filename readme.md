@@ -1,6 +1,5 @@
 
-Shortcodes
-==========
+# Shortcodes
 
 A customizable shortcode parser in Python 3. Useful as a drop-in component in text processing applications.
 
@@ -19,37 +18,41 @@ Shortcode syntax is customizable:
     <tag arg="foo"> ... </tag>
 
 
-Usage
------
+## Usage
 
-### Registering Shortcodes ###
+### Registering Shortcodes
 
-Every shortcode is associated with a handler function. You create a new shortcode by registering its handler function with the `@register` decorator:
+Every shortcode has an associated handler function. To create a new shortcode you register its handler function using the `@register` decorator:
+
+    import shortcodes
 
     @shortcodes.register('tag')
     def handler(context=None, content=None, pargs=[], kwargs={}):
         ...
 
-Specify a closing tag to give the new shortcode block scope:
+If you specify a closing tag the new shortcode will have block scope:
 
     @shortcodes.register('tag', 'endtag')
     def handler(context=None, content=None, pargs=[], kwargs={}):
         ...
 
-Handler functions should accept four arguments:
+A handler function should accept four arguments:
 
 * `context`: an arbitrary context object
+
 * `content`: the shortcode's content as a string in the case of block-scoped shortcodes, or `None` in the case of atomic shortcodes
+
 * `pargs`: a list of the shortcode's positional arguments
+
 * `kwargs`: a dictionary of the shortcode's keyword arguments
 
 Positional and keyword arguments are passed as strings. The handler function
 itself should return a string.
 
 
-### Processing Text ###
+### Processing Text
 
-To parse an input string containing shortcodes, create a `Parser` object and call its `.parse()` method:
+To parse an input string containing shortcodes, create a `Parser` object and run the string through its `parse()` method:
 
     parser = shortcodes.Parser()
     output = parser.parse(text, context=None)
@@ -57,7 +60,7 @@ To parse an input string containing shortcodes, create a `Parser` object and cal
 A single `Parser` object can process multiple input strings. The optional `context` argument accepts an arbitrary object to pass on to the registered handler functions.
 
 
-### Customizing Shortcode Syntax ###
+### Customizing Shortcode Syntax
 
 The `Parser` object's constructor accepts a number of optional arguments which you can use to customize the syntax of your shortcodes:
 
@@ -66,7 +69,7 @@ The `Parser` object's constructor accepts a number of optional arguments which y
 The escape sequence - by default, a single backslash - allows you to escape shortcodes in your text, i.e. the escaped shortcode `\[% foo %]` will be rendered as the literal text `[% foo %]`.
 
 
-### Exceptions ###
+### Exceptions
 
 The following exception types may be raised by the module:
 
@@ -87,8 +90,7 @@ The following exception types may be raised by the module:
         Raised if a shortcode handler throws an exception.
 
 
-Example
--------
+## Example
 
 Let's make a very simple shortcode to mark a block of text as an HTML code sample. We'll use the word `code` as our tag.
 
@@ -107,7 +109,7 @@ We're done. Now we can try it with some input text:
         print('hello, world')
     [% endcode %]
 
-If we create a `Parser` object and run the input above through its `.parse()` method it will give us back the following output:
+If we create a `Parser` object and run the input above through its `parse()` method it will give us back the following output:
 
     <pre class="python">
     def hello_world():
@@ -115,7 +117,6 @@ If we create a `Parser` object and run the input above through its `.parse()` me
     </pre>
 
 
-License
--------
+## License
 
 This work has been placed in the public domain.
