@@ -185,12 +185,12 @@ class Parser:
 
     """ Parses text and renders shortcodes.
 
-    A single Parser instance can parse mulitple input strings.
+    A single Parser instance can parse multiple input strings.
 
         parser = Parser()
         output = parser.parse(text, context)
 
-    The .parse() method accepts an arbitrary context object which it
+    The parse() method accepts an arbitrary context object which it
     passes on to the shortcode handler functions.
 
     """
