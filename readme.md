@@ -19,7 +19,7 @@ Shortcode syntax is customizable:
 
 ## Installation
 
-You can incorporate the `shortcodes.py` file directly into your Python package. The library is entirely self-contained and its code has been placed in the public domain.
+You can incorporate the `shortcodes.py` file directly into your Python application. The library is entirely self-contained and its code has been placed in the public domain.
 
 Alternatively, you can install the shortcodes library from the Python package index using `pip`:
 
