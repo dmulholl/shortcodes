@@ -64,12 +64,12 @@ itself should return a string.
 
 ### Processing Text
 
-To parse an input string containing shortcodes, create a `Parser` object and run the string through its `parse()` method:
+To parse an input string containing shortcodes, create a `Parser` instance and run the string through its `parse()` method:
 
     parser = shortcodes.Parser()
     output = parser.parse(text, context=None)
 
-A single `Parser` object can process multiple input strings. The optional `context` argument accepts an arbitrary object to pass on to the registered handler functions.
+A single `Parser` instance can process multiple input strings. The optional `context` argument accepts an arbitrary object to pass on to the registered handler functions.
 
 
 
