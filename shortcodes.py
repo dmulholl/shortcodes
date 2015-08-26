@@ -45,7 +45,7 @@ A single Parser() object can process multiple input strings. The optional
 handler functions.
 
 Author: Darren Mulholland <dmulholland@outlook.ie>
-License: This work has been placed in the public domain.
+License: Public Domain
 
 """
 
@@ -54,7 +54,7 @@ import sys
 
 
 # Library version number.
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 
 # Stores registered shortcode functions indexed by tag.
@@ -74,12 +74,12 @@ def register(tag, end_tag=None):
 
 
 def decode(s):
-    """ Decode string escape sequences. """
+    """ Decodes string escape sequences. """
     return bytes(s, 'utf-8').decode('unicode_escape')
 
 
 class ShortcodeError(Exception):
-    """ Base class for all exceptions raised by the module. """
+    """ Base class for all exceptions raised by the library. """
     pass
 
 
@@ -109,9 +109,9 @@ class Node:
         return ''.join(child.render(context) for child in self.children)
 
 
-class TextNode(Node):
+class Text(Node):
 
-    """ Plain text content. """
+    """ Text content outside and between shortcode tags. """
 
     def __init__(self, text):
         self.text = text
@@ -120,9 +120,9 @@ class TextNode(Node):
         return self.text
 
 
-class ShortcodeNode(Node):
+class Shortcode(Node):
 
-    """ An atomic (non-block-scoped) shortcode. """
+    """ Atomic shortcode (a shortcode with no closing tag). """
 
     argregex = re.compile(r"""
         (?:([^\s'"=]+)=)?
@@ -165,12 +165,12 @@ class ShortcodeNode(Node):
         return pargs, kwargs
 
 
-class ScopedShortcodeNode(ShortcodeNode):
+class ScopedShortcode(Shortcode):
 
-    """ A block-scoped shortcode. """
+    """ Block-scoped shortcode (a shortcode with opening and closing tags). """
 
     def __init__(self, tag, argstring):
-        ShortcodeNode.__init__(self, tag, argstring)
+        Shortcode.__init__(self, tag, argstring)
         self.children = []
 
     def render(self, context):
@@ -208,52 +208,52 @@ class Parser:
         ))
 
     def parse(self, text, context=None):
-        stack, expecting = [], []
-        stack.append(Node())
+        stack, expecting = [Node()], []
 
-        for token in self.tokenize(text):
+        for token in self._tokenize(text):
             if token.startswith(self.start):
                 content = token[self.len_start:-self.len_end].strip()
                 if content:
-                    self.parse_token_content(stack, expecting, content)
+                    self._parse_token_content(stack, expecting, content)
             elif token.startswith(self.estart):
-                stack[-1].children.append(TextNode(token[self.len_esc:]))
+                stack[-1].children.append(Text(token[self.len_esc:]))
             else:
-                stack[-1].children.append(TextNode(token))
+                stack[-1].children.append(Text(token))
 
         if expecting:
             raise NestingError('expecting [%s]' % expecting[-1])
 
         return stack.pop().render(context)
 
-    def tokenize(self, text):
+    def _tokenize(self, text):
         for token in self.regex.split(text):
             if token:
                 yield token
 
-    def parse_token_content(self, stack, expecting, content):
-        tag = content.split(None, 1)[0]
+    def _parse_token_content(self, stack, expecting, content):
+        tagstr = content.split(None, 1)[0]
+        argstr = content[len(tagstr):]
 
-        if tag in tagmap['endtags']:
+        if tagstr in tagmap['endtags']:
             if not expecting:
-                raise NestingError('not expecting [%s]' % tag)
-            elif tag == expecting[-1]:
+                raise NestingError('not expecting [%s]' % tagstr)
+            elif tagstr == expecting[-1]:
                 stack.pop()
                 expecting.pop()
             else:
                 msg = 'expecting [%s], found [%s]'
-                raise NestingError(msg % (expecting[-1], tag))
+                raise NestingError(msg % (expecting[-1], tagstr))
 
-        elif tag in tagmap:
-            if tagmap[tag]['endtag']:
-                node = ScopedShortcodeNode(tag, content[len(tag):])
+        elif tagstr in tagmap:
+            if tagmap[tagstr]['endtag']:
+                node = ScopedShortcode(tagstr, argstr)
                 stack[-1].children.append(node)
                 stack.append(node)
-                expecting.append(tagmap[tag]['endtag'])
+                expecting.append(tagmap[tagstr]['endtag'])
             else:
-                node = ShortcodeNode(tag, content[len(tag):])
+                node = Shortcode(tagstr, argstr)
                 stack[-1].children.append(node)
 
         else:
             msg = '[%s] is not a recognised shortcode tag'
-            raise InvalidTagError(msg % tag)
+            raise InvalidTagError(msg % tagstr)
