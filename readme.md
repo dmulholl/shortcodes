@@ -1,7 +1,7 @@
 
 # Shortcodes
 
-A customizable shortcode parser in Python 3. Useful as a drop-in component in text processing applications.
+A Python library for parsing customizable WordPress-style shortcodes. Useful as a drop-in component in text processing applications.
 
 Supports shortcodes with space-separated positional and keyword arguments:
 
@@ -16,6 +16,7 @@ Shortcode syntax is customizable:
     <tag arg="foo"> ... </tag>
 
 
+
 ## Installation
 
 You can incorporate the `shortcodes.py` file directly into your Python package. The library is entirely self-contained and its code has been placed in the public domain.
@@ -27,11 +28,12 @@ Alternatively, you can install the shortcodes library from the Python package in
 Note that this library requires Python 3.
 
 
+
 ## Usage
 
 ### Registering Shortcodes
 
-Every shortcode tag has an associated handler function. You can create a new shortcode by registering its handler function using the `@register` decorator:
+Every shortcode tag has an associated handler function. You can create a new shortcode by registering its handler using the `@register` decorator:
 
     import shortcodes
 
@@ -59,6 +61,7 @@ Positional and keyword arguments are passed as strings. The handler function
 itself should return a string.
 
 
+
 ### Processing Text
 
 To parse an input string containing shortcodes, create a `Parser` object and run the string through its `parse()` method:
@@ -69,6 +72,7 @@ To parse an input string containing shortcodes, create a `Parser` object and run
 A single `Parser` object can process multiple input strings. The optional `context` argument accepts an arbitrary object to pass on to the registered handler functions.
 
 
+
 ### Customizing Shortcode Syntax
 
 The `Parser` object's constructor accepts a number of optional arguments which you can use to customize the syntax of your shortcodes:
@@ -76,6 +80,7 @@ The `Parser` object's constructor accepts a number of optional arguments which y
     parser = shortcodes.Parser(start='[%', end='%]', esc='\\')
 
 The escape sequence - by default, a single backslash - allows you to escape shortcodes in your text, i.e. the escaped shortcode `\[% foo %]` will be rendered as the literal text `[% foo %]`.
+
 
 
 ### Exceptions
@@ -99,9 +104,10 @@ The following exception types may be raised by the module:
         Raised if a shortcode handler throws an exception.
 
 
+
 ## Example
 
-Let's make a very simple shortcode to mark a block of text as an HTML code sample. We'll use the word `code` as our tag.
+Let's make a very simple shortcode to mark a block of text as a HTML code sample. We'll use the word `code` as our tag.
 
 Our shortcode will accept a single argument - the name of the programming language - and will have block scope as it needs to enclose a block of content. We'll choose the word `endcode` as our closing tag.
 
@@ -124,6 +130,7 @@ If we create a `Parser` object and run the input above through its `parse()` met
     def hello_world():
         print('hello, world')
     </pre>
+
 
 
 ## License

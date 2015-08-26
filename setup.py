@@ -47,7 +47,7 @@ setup(
     url = 'https://github.com/dmulholland/shortcodes',
     license = 'Public Domain',
     description = (
-        'A customizable shortcode parser.'
+        'A generic, customizable shortcode parser.'
     ),
     long_description = __doc__,
     classifiers = [
