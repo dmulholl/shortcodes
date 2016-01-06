@@ -5,7 +5,7 @@ A Python library for parsing customizable WordPress-style shortcodes. Useful as 
 
 Supports shortcodes with space-separated positional and keyword arguments:
 
-    [% tag arg1 "arg 2" key1=arg3 key2="arg 4" %]
+    [% tag arg1 "arg 2" key=arg3 key="arg 4" %]
 
 Shortcodes can be atomic or block-scoped and can be nested to any depth. Innermost shortcodes are processed first:
 
@@ -60,6 +60,10 @@ A handler function should accept four arguments:
 Positional and keyword arguments are passed as strings. The handler function
 itself should return a string.
 
+Handlers registered using the `@register` decorator are available globally. If you need to avoid global state in your application you can register handlers on an individual parser instance instead:
+
+    parser = shortcodes.Parser()
+    parser.register(handler, 'tag', 'endtag')
 
 
 ### Processing Text
