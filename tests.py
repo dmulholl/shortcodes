@@ -108,5 +108,22 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(rendered, '101')
 
 
+class LocalRegistrationTests(unittest.TestCase):
+
+    def test_locally_registered_handler(self):
+        text = '[% local %]'
+        parser = shortcodes.Parser()
+        parser.register(foo_handler, 'local')
+        rendered = parser.parse(text)
+        self.assertEqual(rendered, 'bar')
+
+    def test_locally_registered_wrap(self):
+        text = '[% localwrap div %]foo[% endlocalwrap %]'
+        parser = shortcodes.Parser()
+        parser.register(wrap_handler, 'localwrap', 'endlocalwrap')
+        rendered = parser.parse(text)
+        self.assertEqual(rendered, '<div>foo</div>')
+
+
 if __name__ == '__main__':
     unittest.main()
