@@ -40,22 +40,21 @@ Every shortcode tag has an associated handler function. You can create a new sho
     @shortcodes.register('tag')
     def handler(context=None, content=None, pargs=[], kwargs={}):
         ...
+        return replacement_text
 
 If you specify a closing tag the new shortcode will have block scope:
 
     @shortcodes.register('tag', 'endtag')
     def handler(context=None, content=None, pargs=[], kwargs={}):
         ...
+        return replacement_text
 
 A handler function should accept four arguments:
 
-* `context`: an arbitrary context object
-
-* `content`: the shortcode's content as a string in the case of block-scoped shortcodes, or `None` in the case of atomic shortcodes
-
-* `pargs`: a list of the shortcode's positional arguments
-
-* `kwargs`: a dictionary of the shortcode's keyword arguments
+1. An arbitrary context object.
+2. A string containing the shortcode's content if the shortcode has block-scope; otherwise `None`.
+3. A list of positional arguments.
+4. A dictionary of keyword arguments.
 
 Positional and keyword arguments are passed as strings. The handler function
 itself should return a string.
