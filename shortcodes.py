@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------
 # A library for parsing customizable Wordpress-style shortcodes.
 #
-# Author: Darren Mulholland
+# Author: Darren Mulholland <darren@mulholland.xyz>
 # License: Public Domain
 # --------------------------------------------------------------------------
 

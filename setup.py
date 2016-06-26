@@ -44,7 +44,7 @@ setup(
     version = meta['version'],
     py_modules = ['shortcodes'],
     author = 'Darren Mulholland',
-    url = 'https://github.com/dmulholland/shortcodes',
+    url = 'http://mulholland.xyz/dev/shortcodes/',
     license = 'Public Domain',
     description = (
         'A generic, customizable shortcode parser.'
