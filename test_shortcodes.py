@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
+# --------------------------------------------------------------------------
+# Unit tests for the shortcodes module. Run using pytest.
+# --------------------------------------------------------------------------
 
-""" Unit tests for the shortcodes module. """
-
-import unittest
 import shortcodes
+
+
+# --------------------------------------------------------------------------
+# Test handlers.
+# --------------------------------------------------------------------------
 
 
 @shortcodes.register('foo')
@@ -28,102 +33,125 @@ def context_handler(context, content, pargs, kwargs):
     return str(context)
 
 
-class InsertionTests(unittest.TestCase):
-
-    def test_empty_string(self):
-        text = ''
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '')
-
-    def test_string_without_shortcodes(self):
-        text = 'foo'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, 'foo')
-
-    def test_simple_insertion(self):
-        text = '[% foo %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, 'bar')
-
-    def test_simple_insertion_with_text(self):
-        text = '..[% foo %]..'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '..bar..')
+# --------------------------------------------------------------------------
+# Basic shortcode insertion tests.
+# --------------------------------------------------------------------------
 
 
-class EscapingTests(unittest.TestCase):
-
-    def test_escaped_shortcode(self):
-        text = r'\[% foo %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '[% foo %]')
-
-    def test_double_escaped_shortcode(self):
-        text = r'\\[% foo %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, r'\[% foo %]')
+def test_parse_empty_string():
+    text = ''
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == ''
 
 
-class ArgumentTests(unittest.TestCase):
-
-    def test_args_with_double_quoted_strings(self):
-        text = '[% args arg1 "arg 2" key1=arg3 key2="arg 4" %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, 'arg1|arg 2|key1:arg3|key2:arg 4')
-
-    def test_args_with_single_quoted_strings(self):
-        text = "[% args arg1 'arg 2' key1=arg3 key2='arg 4' %]"
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, 'arg1|arg 2|key1:arg3|key2:arg 4')
+def test_parse_string_no_shortcodes():
+    text = 'foo'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'foo'
 
 
-class NestingTests(unittest.TestCase):
-
-    def test_wrapping_simple_text(self):
-        text = '[% wrap div %]foo[% endwrap %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div>foo</div>')
-
-    def test_wrapping_shortcode(self):
-        text = '[% wrap div %][% foo %][% endwrap %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div>bar</div>')
-
-    def test_wrapping_wrapping_shortcode(self):
-        text = '[% wrap div %][% wrap p %][% foo %][% endwrap %][% endwrap %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div><p>bar</p></div>')
-
-    def test_wrapping_and_text_mix(self):
-        text = '[% wrap div %]..[% wrap p %].[% foo %].[% endwrap %]..[% endwrap %]'
-        rendered = shortcodes.Parser().parse(text)
-        self.assertEqual(rendered, '<div>..<p>.bar.</p>..</div>')
+def test_parse_single_shortcode():
+    text = '[% foo %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'bar'
 
 
-class ContextTests(unittest.TestCase):
-
-    def test_context_object(self):
-        text = '[% context %]'
-        rendered = shortcodes.Parser().parse(text, 101)
-        self.assertEqual(rendered, '101')
+def test_parse_single_shortcode_with_text():
+    text = '..[% foo %]..'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == '..bar..'
 
 
-class LocalRegistrationTests(unittest.TestCase):
-
-    def test_locally_registered_handler(self):
-        text = '[% local %]'
-        parser = shortcodes.Parser()
-        parser.register(foo_handler, 'local')
-        rendered = parser.parse(text)
-        self.assertEqual(rendered, 'bar')
-
-    def test_locally_registered_wrap(self):
-        text = '[% localwrap div %]foo[% endlocalwrap %]'
-        parser = shortcodes.Parser()
-        parser.register(wrap_handler, 'localwrap', 'endlocalwrap')
-        rendered = parser.parse(text)
-        self.assertEqual(rendered, '<div>foo</div>')
+# --------------------------------------------------------------------------
+# Test shortcode escaping.
+# --------------------------------------------------------------------------
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_escaped_shortcode():
+    text = r'\[% foo %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == '[% foo %]'
+
+
+def test_double_escaped_shortcode():
+    text = r'\\[% foo %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == r'\[% foo %]'
+
+
+# --------------------------------------------------------------------------
+# Test shortcode arguments.
+# --------------------------------------------------------------------------
+
+
+def test_args_with_double_quoted_strings():
+    text = '[% args arg1 "arg 2" key1=arg3 key2="arg 4" %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|arg 2|key1:arg3|key2:arg 4'
+
+
+def test_args_with_single_quoted_strings():
+    text = "[% args arg1 'arg 2' key1=arg3 key2='arg 4' %]"
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|arg 2|key1:arg3|key2:arg 4'
+
+
+# --------------------------------------------------------------------------
+# Test shortcode nesting.
+# --------------------------------------------------------------------------
+
+
+def test_wrapping_simple_text():
+    text = '[% wrap div %]foo[% endwrap %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == '<div>foo</div>'
+
+
+def test_wrapping_shortcode():
+    text = '[% wrap div %][% foo %][% endwrap %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == '<div>bar</div>'
+
+
+def test_wrapping_wrapping_shortcode():
+    text = '[% wrap div %][% wrap p %][% foo %][% endwrap %][% endwrap %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == '<div><p>bar</p></div>'
+
+
+def test_wrapping_and_text_mix():
+    text = '[% wrap div %]..[% wrap p %].[% foo %].[% endwrap %]..[% endwrap %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == '<div>..<p>.bar.</p>..</div>'
+
+
+# --------------------------------------------------------------------------
+# Test context object support.
+# --------------------------------------------------------------------------
+
+
+def test_context_object():
+    text = '[% context %]'
+    rendered = shortcodes.Parser().parse(text, 101)
+    assert rendered == '101'
+
+
+# --------------------------------------------------------------------------
+# Test local handler registration.
+# --------------------------------------------------------------------------
+
+
+def test_locally_registered_handler():
+    text = '[% local %]'
+    parser = shortcodes.Parser()
+    parser.register(foo_handler, 'local')
+    rendered = parser.parse(text)
+    assert rendered == 'bar'
+
+
+def test_locally_registered_wrap():
+    text = '[% localwrap div %]foo[% endlocalwrap %]'
+    parser = shortcodes.Parser()
+    parser.register(wrap_handler, 'localwrap', 'endlocalwrap')
+    rendered = parser.parse(text)
+    assert rendered == '<div>foo</div>'
