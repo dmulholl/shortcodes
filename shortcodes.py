@@ -10,7 +10,7 @@ import sys
 
 
 # Library version number.
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 
 
 # Globally registered shortcode handlers indexed by tag.
@@ -144,8 +144,8 @@ class AtomicShortcode(Shortcode):
 class BlockShortcode(Shortcode):
 
     def render(self, context):
+        content = ''.join(child.render(context) for child in self.children)
         try:
-            content = ''.join(child.render(context) for child in self.children)
             return str(self.func(context, content, self.pargs, self.kwargs))
         except:
             raise RenderingError('error rendering [%s] shortcode' % self.tag)
