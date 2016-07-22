@@ -10,7 +10,7 @@ import sys
 
 
 # Library version number.
-__version__ = "2.2.1"
+__version__ = "2.3.0"
 
 
 # Globally registered shortcode handlers indexed by tag.
@@ -137,7 +137,7 @@ class AtomicShortcode(Shortcode):
         try:
             return str(self.func(context, None, self.pargs, self.kwargs))
         except:
-            raise RenderingError('error rendering [%s] shortcode' % self.tag)
+            raise RenderingError("error rendering '%s' shortcode" % self.tag)
 
 
 # A block-scoped shortcode is a shortcode with a closing tag.
@@ -148,7 +148,7 @@ class BlockShortcode(Shortcode):
         try:
             return str(self.func(context, content, self.pargs, self.kwargs))
         except:
-            raise RenderingError('error rendering [%s] shortcode' % self.tag)
+            raise RenderingError("error rendering '%s' shortcode" % self.tag)
 
 
 # --------------------------------------------------------------------------
@@ -197,7 +197,7 @@ class Parser:
 
         # The stack of expected end-tags should finish empty.
         if expecting:
-            raise NestingError('expecting [%s]' % expecting[-1])
+            raise NestingError("expecting '%s'" % expecting[-1])
 
         # Pop the root node and render it as a string.
         return stack.pop().render(context)
@@ -232,12 +232,12 @@ class Parser:
         # Do we have a registered end-tag?
         if tag in ends:
             if not expecting:
-                raise NestingError('not expecting [%s]' % tag)
+                raise NestingError("not expecting '%s'" % tag)
             elif tag == expecting[-1]:
                 stack.pop()
                 expecting.pop()
             else:
-                msg = 'expecting [%s], found [%s]'
+                msg = "expecting '%s', found '%s'"
                 raise NestingError(msg % (expecting[-1], tag))
 
         # Do we have a registered tag?
@@ -253,5 +253,5 @@ class Parser:
 
         # We have an unrecognised tag.
         else:
-            msg = '[%s] is not a recognised shortcode tag'
+            msg = "'%s' is not a recognised shortcode tag"
             raise InvalidTagError(msg % tag)
