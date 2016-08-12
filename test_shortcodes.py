@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------
 
 import shortcodes
+import pytest
 
 
 # --------------------------------------------------------------------------
@@ -31,6 +32,12 @@ def args_handler(context, content, pargs, kwargs):
 @shortcodes.register('context')
 def context_handler(context, content, pargs, kwargs):
     return str(context)
+
+
+@shortcodes.register('divbyzero')
+def divbyzero_handler(context, content, pargs, kwargs):
+    x = 1 / 0
+    return 'we never make it here'
 
 
 # --------------------------------------------------------------------------
@@ -155,3 +162,27 @@ def test_locally_registered_wrap():
     parser.register(wrap_handler, 'localwrap', 'endlocalwrap')
     rendered = parser.parse(text)
     assert rendered == '<div>foo</div>'
+
+
+# --------------------------------------------------------------------------
+# Test raising exceptions.
+# --------------------------------------------------------------------------
+
+
+def test_handler_exception():
+    text = '[% divbyzero %]'
+    with pytest.raises(shortcodes.RenderingError) as exinfo:
+        shortcodes.Parser().parse(text)
+    assert isinstance(exinfo.value.__cause__, ZeroDivisionError)
+
+
+def test_invalid_tag_exception():
+    text = '[% notregistered %]'
+    with pytest.raises(shortcodes.InvalidTagError):
+        shortcodes.Parser().parse(text)
+
+
+def test_unbalanced_tags_exception():
+    text = '[% wrap %] missing end tag...'
+    with pytest.raises(shortcodes.NestingError):
+        shortcodes.Parser().parse(text)

@@ -10,7 +10,7 @@ import sys
 
 
 # Library version number.
-__version__ = "2.3.0"
+__version__ = "2.4.0"
 
 
 # Globally registered shortcode handlers indexed by tag.
@@ -58,7 +58,7 @@ class InvalidTagError(ShortcodeError):
     pass
 
 
-# Exception raised if an attempt to call a shortcode function fails.
+# Exception raised if a handler function throws an error.
 class RenderingError(ShortcodeError):
     pass
 
@@ -133,22 +133,30 @@ class Shortcode(Node):
 # An atomic shortcode is a shortcode with no closing tag.
 class AtomicShortcode(Shortcode):
 
+    # If the shortcode handler raises an exception we intercept it and wrap it
+    # in a RenderingError. The original exception will still be available via
+    # the RenderingError's __cause__ attribute.
     def render(self, context):
         try:
             return str(self.func(context, None, self.pargs, self.kwargs))
-        except:
-            raise RenderingError("error rendering '%s' shortcode" % self.tag)
+        except Exception as ex:
+            msg = "error rendering '%s' shortcode" % self.tag
+            raise RenderingError(msg) from ex
 
 
 # A block-scoped shortcode is a shortcode with a closing tag.
 class BlockShortcode(Shortcode):
 
+    # If the shortcode handler raises an exception we intercept it and wrap it
+    # in a RenderingError. The original exception will still be available via
+    # the RenderingError's __cause__ attribute.
     def render(self, context):
         content = ''.join(child.render(context) for child in self.children)
         try:
             return str(self.func(context, content, self.pargs, self.kwargs))
-        except:
-            raise RenderingError("error rendering '%s' shortcode" % self.tag)
+        except Exception as ex:
+            msg = "error rendering '%s' shortcode" % self.tag
+            raise RenderingError(msg) from ex
 
 
 # --------------------------------------------------------------------------
