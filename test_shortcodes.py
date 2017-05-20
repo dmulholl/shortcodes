@@ -5,6 +5,7 @@
 
 import shortcodes
 import pytest
+import six
 
 
 # --------------------------------------------------------------------------
@@ -173,7 +174,8 @@ def test_handler_exception():
     text = '[% divbyzero %]'
     with pytest.raises(shortcodes.RenderingError) as exinfo:
         shortcodes.Parser().parse(text)
-    assert isinstance(exinfo.value.__cause__, ZeroDivisionError)
+    if six.PY3:
+        assert isinstance(exinfo.value.__cause__, ZeroDivisionError)
 
 
 def test_invalid_tag_exception():
