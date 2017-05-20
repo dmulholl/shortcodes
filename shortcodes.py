@@ -6,7 +6,7 @@
 # --------------------------------------------------------------------------
 
 import re
-import sys
+import six
 
 
 # Library version number.
@@ -35,7 +35,10 @@ def register(tag, end_tag=None):
 
 # Decode unicode escape sequences in a string.
 def decode_escapes(s):
-    return bytes(s, 'utf-8').decode('unicode_escape')
+    if six.PY2:
+        return s.decode('unicode_escape')
+    else:
+        return bytes(s, 'utf-8').decode('unicode_escape')
 
 
 # --------------------------------------------------------------------------
@@ -141,7 +144,7 @@ class AtomicShortcode(Shortcode):
             return str(self.func(context, None, self.pargs, self.kwargs))
         except Exception as ex:
             msg = "error rendering '%s' shortcode" % self.tag
-            raise RenderingError(msg) from ex
+            six.raise_from(RenderingError(msg), ex)
 
 
 # A block-scoped shortcode is a shortcode with a closing tag.
@@ -156,7 +159,8 @@ class BlockShortcode(Shortcode):
             return str(self.func(context, content, self.pargs, self.kwargs))
         except Exception as ex:
             msg = "error rendering '%s' shortcode" % self.tag
-            raise RenderingError(msg) from ex
+            six.raise_from(RenderingError(msg), ex)
+
 
 
 # --------------------------------------------------------------------------
