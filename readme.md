@@ -5,4 +5,4 @@ A Python library for parsing customizable WordPress-style shortcodes. Useful as 
 
 See the library's [documentation][docs] for details.
 
-[docs]: http://mulholland.xyz/dev/shortcodes/
+[docs]: http://mulholland.xyz/docs/shortcodes/
