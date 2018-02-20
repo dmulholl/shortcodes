@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Shortcodes &mdash; a Python library for parsing shortcodes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="pygments.css">
+    
+      <meta name="description" content="This Python library supports customizable WordPress-style shortcodes with space-separated positional and keyword arguments.">
+    
+    
+  </head>
+
+  <body class="node homepage">
+
+    <header class="masthead">
+      <h1><a href="index.html">Shortcodes</a></h1>
+      
+        <p class="tagline">A Python library for parsing customizable WordPress-style shortcodes.</p>
+      
+      <nav class="menu">
+        <input id="menu-check" type="checkbox"/>
+        <label id="menu-label" for="menu-check" class="unselectable">
+          <span class="icon close-icon">✕</span>
+          <span class="icon open-icon">☰</span>
+          <span class="text">Menu</span>
+        </label>
+        <ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="guide.html">Guide</a></li>
+<li><a href="https://github.com/dmulholland/shortcodes">Source</a></li>
+</ul>
+      </nav>
+    </header>
+
+    <article class="main">
+      <header class="title">
+        <h1>Home</h1>
+        
+        <hr>
+      </header>
+      <p>
+This Python library supports customizable WordPress-style shortcodes with space-separated positional and keyword arguments:
+</p>
+<pre>
+[% tag arg1 key=arg2 %]
+</pre>
+<p>
+Arguments containing spaces can be enclosed in quotes:
+</p>
+<pre>
+[% tag &quot;arg 1&quot; key=&quot;arg 2&quot; %]
+</pre>
+<p>
+Shortcodes can be atomic, as above, or can enclose a block of content between opening and closing tags:
+</p>
+<pre>
+[% tag %] ... [% endtag %]
+</pre>
+<p>
+Block-scoped shortcodes can be nested to any depth. Innermost shortcodes are processed first:
+</p>
+<pre>
+[% tag %] ... content with [% more %] shortcodes ... [% endtag %]
+</pre>
+<p>
+Shortcode syntax is customizable:
+</p>
+<pre>
+&lt;tag arg=&quot;foo&quot;&gt; ... &lt;/tag&gt;
+</pre>
+<h3 id="installation">
+Installation
+</h3>
+<p>
+Install from the Python package index using <code>pip</code>:
+</p>
+<pre>
+$ pip install shortcodes
+</pre>
+<p>
+Alternatively, you can incorporate the <code>shortcodes.py</code> file directly into your application. The library is entirely self-contained and its code has been placed in the public domain. You can find the code on Github <a href="https://github.com/dmulholland/shortcodes">here</a>.
+</p>
+<p>
+Note that this library requires Python 3.
+</p>
+<h3 id="license">
+License
+</h3>
+<p>
+This work has been placed in the public domain.
+</p>
+
+    </article>
+
+    
+
+  </body>
+</html>
