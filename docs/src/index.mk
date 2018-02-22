@@ -42,6 +42,14 @@ Note that this library requires Python 3.
 
 
 
+### Links
+
+* [Github Homepage](https://github.com/dmulholland/shortcodes)
+* [Python Package Index](https://pypi.python.org/pypi/shortcodes/)
+* [Online Documentation](http://mulholland.xyz/docs/shortcodes/)
+
+
+
 ### License
 
 This work has been placed in the public domain.
