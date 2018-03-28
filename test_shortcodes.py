@@ -186,3 +186,13 @@ def test_unbalanced_tags_exception():
     text = '[% wrap %] missing end tag...'
     with pytest.raises(shortcodes.NestingError):
         shortcodes.Parser().parse(text)
+
+
+# --------------------------------------------------------------------------
+# Test non-ASCII text.
+# --------------------------------------------------------------------------
+
+def test_nonascii_args():
+    text = '[% args pøs0 k€¥="välué" %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'pøs0|k€¥:välué'
