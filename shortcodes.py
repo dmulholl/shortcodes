@@ -32,11 +32,6 @@ def register(tag, end_tag=None):
     return register_function
 
 
-# Decode unicode escape sequences in a string.
-def decode_escapes(s):
-    return bytes(s, 'utf-8').decode('unicode_escape')
-
-
 # --------------------------------------------------------------------------
 # Exception classes.
 # --------------------------------------------------------------------------
@@ -118,8 +113,6 @@ class Shortcode(Node):
             if match.group(2) or match.group(5):
                 key = match.group(1) or match.group(5)
                 value = match.group(3) or match.group(4) or match.group(6)
-                if match.group(3) or match.group(4):
-                    value = decode_escapes(value)
                 if key:
                     kwargs[key] = value
                 else:
