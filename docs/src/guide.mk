@@ -96,7 +96,7 @@ The following exception types may be raised by the library:
 
 Let's make a very simple shortcode to mark a block of text as a HTML code sample. We'll use the word `code` as our tag.
 
-Our shortcode will accept a single argument - the name of the programming language - and will have block scope as it needs to enclose a block of content. We'll choose the word `endcode` as our closing tag.
+Our shortcode will accept a single argument --- the name of the programming language --- and will have block scope as it needs to enclose a block of content. We'll choose the word `endcode` as our closing tag.
 
 ::: python
 
