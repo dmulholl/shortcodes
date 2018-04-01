@@ -9,7 +9,7 @@ import re
 
 
 # Library version number.
-__version__ = "2.4.0"
+__version__ = "2.5.0"
 
 
 # Globally registered shortcode handlers indexed by tag.

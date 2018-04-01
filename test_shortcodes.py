@@ -192,6 +192,7 @@ def test_unbalanced_tags_exception():
 # Test non-ASCII text.
 # --------------------------------------------------------------------------
 
+
 def test_nonascii_args():
     text = '[% args pøs0 k€¥="välué" %]'
     rendered = shortcodes.Parser().parse(text)
