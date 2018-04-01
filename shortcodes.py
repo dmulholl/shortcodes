@@ -82,9 +82,7 @@ class Text(Node):
         return self.text
 
 
-# Base class for atomic and block-scoped shortcodes. Note that string escapes
-# inside quoted arguments are decoded; unquoted arguments are preserved in
-# their raw state.
+# Base class for atomic and block-scoped shortcodes.
 class Shortcode(Node):
 
     # Regex for parsing the shortcode's arguments.
