@@ -50,9 +50,9 @@ body {
     line-height: 1.75;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2 {
     padding: 0;
-    margin: 60px 0 30px;
+    margin: 80px 0 30px;
     line-height: 1.25;
     text-align: center;
 }
@@ -68,16 +68,18 @@ h2 {
 }
 
 h3, h4, h5, h6 {
+    padding: 0;
+    margin: 60px 0 30px;
+    line-height: 1.25;
+    text-align: left;
     font-size: 19px;
     font-weight: bold;
-    text-align: left;
 }
 
 p {
     margin: 25px 0;
     padding: 0;
 }
-
 
 blockquote {
     margin: 40px 0px;
@@ -205,7 +207,7 @@ hr {
     height: 1px;
     border: 0;
     border-top: 1px solid;
-    margin: 50px auto;
+    margin: 60px auto;
     padding: 0;
     max-width: 300px;
 }
@@ -235,7 +237,7 @@ body {
 
 .main {
     width: 600px;
-    padding: 32px 50px 20px;
+    padding: 32px 50px 20px 50px;
     margin-left: 360px;
     border-left: 3px solid black;
     min-height: calc(100vh - 80px);
@@ -261,6 +263,11 @@ body {
 }
 
 .masthead .tagline {
+    font-style: italic;
+    text-align: right;
+}
+
+.masthead .version {
     font-style: italic;
     text-align: right;
 }
@@ -303,9 +310,13 @@ body {
     margin-bottom: 40px;
 }
 
-.main .subtitle {
+.main .title .subtitle {
     font-style: italic;
     text-align: center;
+}
+
+.main .title hr {
+    margin: 50px auto 60px;
 }
 
 /**
@@ -403,6 +414,11 @@ th, td {
     font-style: italic;
 }
 
+.indent {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
 .unselectable {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -441,15 +457,17 @@ th, td {
     body {
         width: auto;
         max-width: 600px;
+        padding-top: 60px;
     }
 
     .masthead {
         width: auto;
         float: none;
-        padding: 20px 20px 60px;
+        padding: 60px 20px 60px 20px;
         text-align: center;
         margin-left: 40px;
         margin-right: 40px;
+        border-top: 3px solid black;
         border-bottom: 3px solid black;
     }
 
@@ -466,6 +484,15 @@ th, td {
     }
 
     .masthead .tagline {
+        text-align: center;
+        display: none;
+    }
+
+    .homepage .masthead .tagline {
+        display: block;
+    }
+
+    .masthead .version {
         text-align: center;
     }
 
@@ -582,6 +609,7 @@ th, td {
 
     body {
         font-size: 16px;
+        padding-top: 40px;
     }
 
     h1 {
@@ -598,10 +626,6 @@ th, td {
 
     pre, code {
         font-size: 12px;
-    }
-
-    .masthead {
-        padding-top: 0;
     }
 
     .small {

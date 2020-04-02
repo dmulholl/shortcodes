@@ -4,4 +4,4 @@
 
 * [Home](@root/)
 * [Guide](@root/guide//)
-* [Source](https://github.com/dmulholland/shortcodes)
+* [Source](https://github.com/dmulholl/shortcodes)

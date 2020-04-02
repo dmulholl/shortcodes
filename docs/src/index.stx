@@ -38,15 +38,14 @@ Alternatively, you can incorporate the `shortcodes.py` file directly into your a
 
 Note that this library requires Python 3.
 
-[github]: https://github.com/dmulholland/shortcodes
+[github]: https://github.com/dmulholl/shortcodes
 
 
 
 ### Links
 
-* [Github Homepage](https://github.com/dmulholland/shortcodes)
+* [Github Homepage](https://github.com/dmulholl/shortcodes)
 * [Python Package Index](https://pypi.python.org/pypi/shortcodes/)
-* [Online Documentation](http://mulholland.xyz/docs/shortcodes/)
 
 
 

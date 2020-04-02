@@ -6,7 +6,7 @@ title: Guide
 
 You can create a new shortcode by registering a handler function for its tag using the `@register` decorator:
 
-::: python
+::: code python
 
     import shortcodes
 
@@ -17,7 +17,7 @@ You can create a new shortcode by registering a handler function for its tag usi
 
 Specifying a closing tag gives the new shortcode block scope:
 
-::: python
+::: code python
 
     @shortcodes.register("tag", "endtag")
     def handler(context, content, pargs, kwargs):
@@ -37,7 +37,7 @@ Positional and keyword arguments are passed as strings. The function itself shou
 
 Handlers registered using the `@register` decorator are available globally. If you need to avoid global state in your application you can register handlers on an individual parser instance instead:
 
-::: python
+::: code python
 
     parser = shortcodes.Parser()
     parser.register(handler, tag, endtag=None)
@@ -48,7 +48,7 @@ Handlers registered using the `@register` decorator are available globally. If y
 
 To parse an input string containing shortcodes, create a `Parser` instance and run the string through its `parse()` method:
 
-::: python
+::: code python
 
     parser = shortcodes.Parser()
     output = parser.parse(text, context=None)
@@ -60,7 +60,7 @@ A single `Parser` instance can process an unlimited number of input strings. The
 
 The `Parser` object's constructor accepts a number of optional arguments which you can use to customize the syntax of your shortcodes:
 
-::: python
+::: code python
 
     parser = shortcodes.Parser(start="\[%", end="%]", esc="\\\\")
 
@@ -72,19 +72,19 @@ The escape sequence (a single backslash by default) allows you to escape shortco
 
 The following exception types may be raised by the library:
 
-*  `shortcodes.ShortcodeError`
+(*) `shortcodes.ShortcodeError`
 
     Base class for all shortcode exceptions.
 
-    *   `shortcodes.NestingError`
+    (*) `shortcodes.NestingError`
 
         Raised if the parser detects unbalanced or improperly nested shortcode tags.
 
-    *   `shortcodes.InvalidTagError`
+    (*) `shortcodes.InvalidTagError`
 
         Raised if the parser encounters an unrecognised shortcode tag.
 
-    *   `shortcodes.RenderingError`
+    (*) `shortcodes.RenderingError`
 
         Raised if a shortcode handler throws an exception. Note that the
         `RenderingError` instance wraps the original exception which can be
@@ -98,7 +98,7 @@ Let's make a very simple shortcode to mark a block of text as a HTML code sample
 
 Our shortcode will accept a single argument --- the name of the programming language --- and will have block scope as it needs to enclose a block of content. We'll choose the word `endcode` as our closing tag.
 
-::: python
+::: code python
 
     import shortcodes
     import html
@@ -118,7 +118,7 @@ We're done. Now we can try it with some input text:
 
 If we create a `Parser` object and run the input above through its `parse()` method it will give us back the following output:
 
-::: html
+::: code html
 
     <pre class="python">
     def hello_world():
