@@ -1,15 +1,10 @@
 # --------------------------------------------------------------------------
 # A library for parsing customizable Wordpress-style shortcodes.
-#
-# Author: Darren Mulholland <darren@mulholland.xyz>
-# License: Public Domain
 # --------------------------------------------------------------------------
 
 import re
 
-
-# Library version number.
-__version__ = "2.5.0"
+__version__ = "2.5.1"
 
 
 # Globally registered shortcode handlers indexed by tag.

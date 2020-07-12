@@ -19,7 +19,7 @@ Shortcode syntax is customizable::
 
     <tag arg="foo"> ... </tag>
 
-See the project's `Github homepage <https://github.com/dmulholland/shortcodes>`_
+See the project's `Github homepage <https://github.com/dmulholl/shortcodes>`_
 for further details.
 
 Note that this package requires Python 3.
@@ -44,10 +44,10 @@ setup(
     version = meta['version'],
     py_modules = ['shortcodes'],
     author = 'Darren Mulholland',
-    url = 'http://mulholland.xyz/dev/shortcodes/',
+    url = 'https://github.com/dmulholl/shortcodes',
     license = 'Public Domain',
     description = (
-        'A generic, customizable shortcode parser.'
+        'A library for parsing customizable WordPress-style shortcodes.'
     ),
     long_description = __doc__,
     classifiers = [

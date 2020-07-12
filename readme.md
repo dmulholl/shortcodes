@@ -1,8 +1,5 @@
-
 # Shortcodes
 
-A Python library for parsing customizable WordPress-style shortcodes. Useful as a drop-in component in text processing applications.
+A Python library for parsing customizable WordPress-style shortcodes.
 
-See the library's [documentation][docs] for details.
-
-[docs]: http://www.dmulholl.com/docs/shortcodes/
+* [Documentation](http://www.dmulholl.com/dev/shortcodes.html)
