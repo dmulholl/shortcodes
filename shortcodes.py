@@ -1,10 +1,10 @@
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # A library for parsing customizable Wordpress-style shortcodes.
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import re
 
-__version__ = "2.5.1"
+__version__ = "3.0.0"
 
 
 # Globally registered shortcode handlers indexed by tag.
@@ -27,9 +27,9 @@ def register(tag, end_tag=None):
     return register_function
 
 
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Exception classes.
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 # Base class for all exceptions raised by the library.
@@ -52,9 +52,9 @@ class RenderingError(ShortcodeError):
     pass
 
 
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # AST Nodes.
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 # Input text is parsed into a tree of Node instances.
@@ -123,7 +123,7 @@ class AtomicShortcode(Shortcode):
     # the RenderingError's __cause__ attribute.
     def render(self, context):
         try:
-            return str(self.func(context, None, self.pargs, self.kwargs))
+            return str(self.func(self.pargs, self.kwargs, context))
         except Exception as ex:
             msg = "error rendering '%s' shortcode" % self.tag
             raise RenderingError(msg) from ex
@@ -138,21 +138,21 @@ class BlockShortcode(Shortcode):
     def render(self, context):
         content = ''.join(child.render(context) for child in self.children)
         try:
-            return str(self.func(context, content, self.pargs, self.kwargs))
+            return str(self.func(self.pargs, self.kwargs, context, content))
         except Exception as ex:
             msg = "error rendering '%s' shortcode" % self.tag
             raise RenderingError(msg) from ex
 
 
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Parser.
-# --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 # A Parser instance parses input text and renders shortcodes. A single Parser
 # instance can parse an unlimited number of input strings. Note that the
-# parse() method accepts an arbitrary context object which it passes on to
-# each shortcode's handler function.
+# parse() method accepts an optional arbitrary context object which it passes on
+# to each shortcode's handler function.
 class Parser:
 
     def __init__(self, start='[%', end='%]', esc='\\'):
