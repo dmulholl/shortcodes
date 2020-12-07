@@ -4,7 +4,7 @@
 
 import re
 
-__version__ = "3.0.0"
+__version__ = "4.0.0.dev"
 
 
 # Globally registered shortcode handlers indexed by tag.
@@ -37,18 +37,13 @@ class ShortcodeError(Exception):
     pass
 
 
-# Exception raised if the parser detects unbalanced tags.
-class NestingError(ShortcodeError):
+# Raised if the parser detects invalid shortcode syntax.
+class ShortcodeSyntaxError(ShortcodeError):
     pass
 
 
-# Exception raised if the parser encounters an unrecognised tag.
-class InvalidTagError(ShortcodeError):
-    pass
-
-
-# Exception raised if a handler function throws an error.
-class RenderingError(ShortcodeError):
+# Raised if a handler function throws an error.
+class ShortcodeRenderingError(ShortcodeError):
     pass
 
 
@@ -67,7 +62,7 @@ class Node:
         return ''.join(child.render(context) for child in self.children)
 
 
-# A Text node represents plain text located between shortcode tokens.
+# Represents ordinary text not enclosed in tag delimiters.
 class Text(Node):
 
     def __init__(self, text):
@@ -119,29 +114,31 @@ class Shortcode(Node):
 class AtomicShortcode(Shortcode):
 
     # If the shortcode handler raises an exception we intercept it and wrap it
-    # in a RenderingError. The original exception will still be available via
-    # the RenderingError's __cause__ attribute.
+    # in a ShortcodeRenderingError. The original exception will still be
+    # available via the exception's __cause__ attribute.
     def render(self, context):
         try:
             return str(self.func(self.pargs, self.kwargs, context))
         except Exception as ex:
-            msg = "error rendering '%s' shortcode" % self.tag
-            raise RenderingError(msg) from ex
+            msg = f"An exception was raised while rendering the "
+            msg += f"'{self.tag}' shortcode."
+            raise ShortcodeRenderingError(msg) from ex
 
 
 # A block-scoped shortcode is a shortcode with a closing tag.
 class BlockShortcode(Shortcode):
 
     # If the shortcode handler raises an exception we intercept it and wrap it
-    # in a RenderingError. The original exception will still be available via
-    # the RenderingError's __cause__ attribute.
+    # in a ShortcodeRenderingError. The original exception will still be
+    # available via the exception's __cause__ attribute.
     def render(self, context):
         content = ''.join(child.render(context) for child in self.children)
         try:
             return str(self.func(self.pargs, self.kwargs, context, content))
         except Exception as ex:
-            msg = "error rendering '%s' shortcode" % self.tag
-            raise RenderingError(msg) from ex
+            msg = f"An exception was raised while rendering the "
+            msg += f"'{self.tag}' shortcode."
+            raise ShortcodeRenderingError(msg) from ex
 
 
 # ------------------------------------------------------------------------------
@@ -190,7 +187,9 @@ class Parser:
 
         # The stack of expected end-tags should finish empty.
         if expecting:
-            raise NestingError("expecting '%s'" % expecting[-1])
+            msg = f"Unexpected end of document. The shortcode parser was "
+            msg += f"expecting a closing '{expecting[-1]}' tag."
+            raise ShortcodeSyntaxError(msg)
 
         # Pop the root node and render it as a string.
         return stack.pop().render(context)
@@ -225,13 +224,15 @@ class Parser:
         # Do we have a registered end-tag?
         if tag in ends:
             if not expecting:
-                raise NestingError("not expecting '%s'" % tag)
+                msg = f"Unexpected '{tag}' tag."
+                raise ShortcodeSyntaxError(msg)
             elif tag == expecting[-1]:
                 stack.pop()
                 expecting.pop()
             else:
-                msg = "expecting '%s', found '%s'"
-                raise NestingError(msg % (expecting[-1], tag))
+                msg = f"Unexpected '{tag}' tag. The shortcode parser was "
+                msg += f"expecting a closing '{expecting[-1]}' tag."
+                raise ShortcodeSyntaxError(msg)
 
         # Do we have a registered tag?
         elif tag in tags:
@@ -246,5 +247,5 @@ class Parser:
 
         # We have an unrecognised tag.
         else:
-            msg = "'%s' is not a recognised shortcode tag"
-            raise InvalidTagError(msg % tag)
+            msg = f"Unrecognised shortcode tag: '{tag}'."
+            raise ShortcodeSyntaxError(msg)

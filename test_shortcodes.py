@@ -171,20 +171,20 @@ def test_locally_registered_wrap():
 
 def test_handler_exception():
     text = '[% divbyzero %]'
-    with pytest.raises(shortcodes.RenderingError) as exinfo:
+    with pytest.raises(shortcodes.ShortcodeRenderingError) as exinfo:
         shortcodes.Parser().parse(text)
     assert isinstance(exinfo.value.__cause__, ZeroDivisionError)
 
 
 def test_invalid_tag_exception():
     text = '[% notregistered %]'
-    with pytest.raises(shortcodes.InvalidTagError):
+    with pytest.raises(shortcodes.ShortcodeSyntaxError):
         shortcodes.Parser().parse(text)
 
 
 def test_unbalanced_tags_exception():
     text = '[% wrap %] missing end tag...'
-    with pytest.raises(shortcodes.NestingError):
+    with pytest.raises(shortcodes.ShortcodeSyntaxError):
         shortcodes.Parser().parse(text)
 
 
