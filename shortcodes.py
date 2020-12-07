@@ -4,7 +4,7 @@
 
 import re
 
-__version__ = "4.0.0.dev"
+__version__ = "4.0.0"
 
 
 # Globally registered shortcode handlers indexed by tag.

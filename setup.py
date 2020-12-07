@@ -42,7 +42,8 @@ with io.open(filepath, encoding='utf-8') as metafile:
 setup(
     name = 'shortcodes',
     version = meta['version'],
-    py_modules = ['shortcodes'],
+    py_modules = ['shortcodes']
+    python_requires = ">=3.6",
     author = 'Darren Mulholland',
     url = 'https://github.com/dmulholl/shortcodes',
     license = 'Public Domain',
