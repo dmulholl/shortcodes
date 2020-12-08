@@ -4,25 +4,25 @@
 
 import re
 
-__version__ = "4.0.0"
+__version__ = "5.0.0"
 
 
-# Globally registered shortcode handlers indexed by tag.
-globaltags = {}
+# Shortcode handler functions indexed by keyword.
+global_keywords = {}
 
 
-# Globally registered end-tags for block-scoped shortcodes.
-globalends = []
+# End-words for block-scoped shortcodes.
+global_endwords = []
 
 
 # Decorator function for globally registering shortcode handlers.
-def register(tag, end_tag=None):
+def register(keyword, endword=None):
 
-    def register_function(function):
-        globaltags[tag] = {'func': function, 'endtag': end_tag}
-        if end_tag:
-            globalends.append(end_tag)
-        return function
+    def register_function(func):
+        global_keywords[keyword] = (func, endword)
+        if endword:
+            global_endwords.append(endword)
+        return func
 
     return register_function
 
@@ -89,10 +89,10 @@ class Shortcode(Node):
         (\S+)
     """, re.VERBOSE)
 
-    def __init__(self, tag, argstring, func):
-        self.tag = tag
-        self.func = func
-        self.pargs, self.kwargs = self.parse_args(argstring)
+    def __init__(self, token, handler_function):
+        self.token = token
+        self.handler = handler_function
+        self.pargs, self.kwargs = self.parse_args(token.text[len(token.keyword):])
         self.children = []
 
     def parse_args(self, argstring):
@@ -118,10 +118,10 @@ class AtomicShortcode(Shortcode):
     # available via the exception's __cause__ attribute.
     def render(self, context):
         try:
-            return str(self.func(self.pargs, self.kwargs, context))
+            return str(self.handler(self.pargs, self.kwargs, context))
         except Exception as ex:
             msg = f"An exception was raised while rendering the "
-            msg += f"'{self.tag}' shortcode."
+            msg += f"'{self.token.keyword}' shortcode in line {self.token.line_number}."
             raise ShortcodeRenderingError(msg) from ex
 
 
@@ -134,10 +134,10 @@ class BlockShortcode(Shortcode):
     def render(self, context):
         content = ''.join(child.render(context) for child in self.children)
         try:
-            return str(self.func(self.pargs, self.kwargs, context, content))
+            return str(self.handler(self.pargs, self.kwargs, context, content))
         except Exception as ex:
             msg = f"An exception was raised while rendering the "
-            msg += f"'{self.tag}' shortcode."
+            msg += f"'{self.token.keyword}' shortcode in line {self.token.line_number}."
             raise ShortcodeRenderingError(msg) from ex
 
 
@@ -148,104 +148,143 @@ class BlockShortcode(Shortcode):
 
 # A Parser instance parses input text and renders shortcodes. A single Parser
 # instance can parse an unlimited number of input strings. Note that the
-# parse() method accepts an optional arbitrary context object which it passes on
-# to each shortcode's handler function.
+# parse() method accepts an optional arbitrary context object which it passes
+# on to each shortcode's handler function.
 class Parser:
 
     def __init__(self, start='[%', end='%]', esc='\\'):
         self.start = start
+        self.end = end
         self.esc_start = esc + start
-        self.len_start = len(start)
-        self.len_end = len(end)
-        self.len_esc = len(esc)
-        self.regex = re.compile(r'((?:%s)?%s.*?%s)' % (
-            re.escape(esc),
-            re.escape(start),
-            re.escape(end),
-        ))
-        self.tags = {}
-        self.ends = []
+        self.keywords = global_keywords.copy()
+        self.endwords = global_endwords.copy()
 
-    def register(self, func, tag, end_tag=None):
-        self.tags[tag] = {'func': func, 'endtag': end_tag}
-        if end_tag:
-            self.ends.append(end_tag)
+    def register(self, func, keyword, endword=None):
+        self.keywords[keyword] = (func, endword)
+        if endword:
+            self.endwords.append(endword)
 
     def parse(self, text, context=None):
+        if not self.start in text:
+            return text
 
-        # Local, merged copies of the global and parser tag registries.
-        tags = globaltags.copy()
-        tags.update(self.tags)
-        ends = globalends[:] + self.ends
+        stack  = [Node()]
+        expecting = []
 
-        # Stack of in-scope nodes and their expected end-tags.
-        stack, expecting = [Node()], []
+        lexer = Lexer(text, self.start, self.end, self.esc_start)
+        for token in lexer.tokenize():
+            if token.type == "TEXT":
+                stack[-1].children.append(Text(token.text))
+            elif token.keyword in self.keywords:
+                handler, endword = self.keywords[token.keyword]
+                if endword:
+                    node = BlockShortcode(token, handler)
+                    stack[-1].children.append(node)
+                    stack.append(node)
+                    expecting.append(endword)
+                else:
+                    node = AtomicShortcode(token, handler)
+                    stack[-1].children.append(node)
+            elif token.keyword in self.endwords:
+                if len(expecting) == 0:
+                    msg = f"Unexpected '{token.keyword}' tag in line {token.line_number}."
+                    raise ShortcodeSyntaxError(msg)
+                elif token.keyword == expecting[-1]:
+                    stack.pop()
+                    expecting.pop()
+                else:
+                    msg = f"Unexpected '{token.keyword}' tag in line {token.line_number}. "
+                    msg += f"The shortcode parser was expecting a closing '{expecting[-1]}' tag."
+                    raise ShortcodeSyntaxError(msg)
+            else:
+                msg = f"Unrecognised shortcode tag '{token.keyword}' "
+                msg + f"in line {token.line_number}."
+                raise ShortcodeSyntaxError(msg)
 
-        # Process the input stream of tokens.
-        for token in self._tokenize(text):
-            self._parse_token(token, stack, expecting, tags, ends)
-
-        # The stack of expected end-tags should finish empty.
         if expecting:
             msg = f"Unexpected end of document. The shortcode parser was "
             msg += f"expecting a closing '{expecting[-1]}' tag."
             raise ShortcodeSyntaxError(msg)
 
-        # Pop the root node and render it as a string.
         return stack.pop().render(context)
 
-    def _tokenize(self, text):
-        for token in self.regex.split(text):
-            if token:
-                yield token
 
-    def _parse_token(self, token, stack, expecting, tags, ends):
+# ------------------------------------------------------------------------------
+# Lexer.
+# ------------------------------------------------------------------------------
 
-        # Do we have a shortcode token?
-        if token.startswith(self.start):
-            content = token[self.len_start:-self.len_end].strip()
-            if content:
-                self._parse_sc_token(content, stack, expecting, tags, ends)
 
-        # Do we have an escaped shortcode token?
-        elif token.startswith(self.esc_start):
-            stack[-1].children.append(Text(token[self.len_esc:]))
+class Token:
 
-        # We must have a text token.
-        else:
-            stack[-1].children.append(Text(token))
+    def __init__(self, token_type, token_text, line_number):
+        self.type = token_type
+        self.text = token_text
+        self.line_number = line_number
 
-    def _parse_sc_token(self, content, stack, expecting, tags, ends):
+    def __str__(self):
+        return f"({self.type}, {repr(self.text)}, {self.line_number})"
 
-        # Split the token's content into the tag and argument string.
-        tag = content.split(None, 1)[0]
-        argstring = content[len(tag):]
+    @property
+    def keyword(self):
+        return self.text.split()[0]
 
-        # Do we have a registered end-tag?
-        if tag in ends:
-            if not expecting:
-                msg = f"Unexpected '{tag}' tag."
-                raise ShortcodeSyntaxError(msg)
-            elif tag == expecting[-1]:
-                stack.pop()
-                expecting.pop()
+
+class Lexer:
+
+    def __init__(self, text, start, end, esc_start):
+        self.text = text
+        self.start = start
+        self.end = end
+        self.esc_start = esc_start
+        self.tokens = []
+        self.index = 0
+        self.line_number = 1
+
+    def match(self, target):
+        if self.text.startswith(target, self.index):
+            return True
+        return False
+
+    def advance(self):
+        if self.text[self.index] == '\n':
+            self.line_number += 1
+        self.index += 1
+
+    def tokenize(self):
+        while self.index < len(self.text):
+            if self.match(self.esc_start):
+                self.read_escaped_tag_delimiter()
+            elif self.match(self.start):
+                self.read_tag()
             else:
-                msg = f"Unexpected '{tag}' tag. The shortcode parser was "
-                msg += f"expecting a closing '{expecting[-1]}' tag."
-                raise ShortcodeSyntaxError(msg)
+                self.read_text()
+        return self.tokens
 
-        # Do we have a registered tag?
-        elif tag in tags:
-            if tags[tag]['endtag']:
-                node = BlockShortcode(tag, argstring, tags[tag]['func'])
-                stack[-1].children.append(node)
-                stack.append(node)
-                expecting.append(tags[tag]['endtag'])
-            else:
-                node = AtomicShortcode(tag, argstring, tags[tag]['func'])
-                stack[-1].children.append(node)
+    def read_escaped_tag_delimiter(self):
+        self.index += len(self.esc_start)
+        self.tokens.append(Token("TEXT", self.start, self.line_number))
 
-        # We have an unrecognised tag.
-        else:
-            msg = f"Unrecognised shortcode tag: '{tag}'."
-            raise ShortcodeSyntaxError(msg)
+    def read_tag(self):
+        self.index += len(self.start)
+        start_index = self.index
+        start_line_number = self.line_number
+        while self.index < len(self.text):
+            if self.match(self.end):
+                text = self.text[start_index:self.index].strip()
+                self.tokens.append(Token("TAG", text, start_line_number))
+                self.index += len(self.end)
+                return
+            self.advance()
+        msg = f"Unclosed shortcode tag. The tag was opened in line {start_line_number}."
+        raise ShortcodeSyntaxError(msg)
+
+    def read_text(self):
+        start_index = self.index
+        start_line_number = self.line_number
+        while self.index < len(self.text):
+            if self.match(self.esc_start) or self.match(self.start):
+                break
+            self.advance()
+        text = self.text[start_index:self.index]
+        self.tokens.append(Token("TEXT", text, start_line_number))
+
