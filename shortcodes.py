@@ -4,7 +4,7 @@
 
 import re
 
-__version__ = "5.0.0"
+__version__ = "5.0.1"
 
 
 # Shortcode handler functions indexed by keyword.
@@ -198,7 +198,7 @@ class Parser:
                     raise ShortcodeSyntaxError(msg)
             else:
                 msg = f"Unrecognised shortcode tag '{token.keyword}' "
-                msg + f"in line {token.line_number}."
+                msg += f"in line {token.line_number}."
                 raise ShortcodeSyntaxError(msg)
 
         if expecting:
