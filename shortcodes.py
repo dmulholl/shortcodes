@@ -205,8 +205,10 @@ class Parser:
                 raise ShortcodeSyntaxError(msg)
 
         if expecting:
+            token = stack[-1].token
             msg = f"Unexpected end of document. The shortcode parser was "
-            msg += f"expecting a closing '{expecting[-1]}' tag."
+            msg += f"expecting a closing '{expecting[-1]}' tag to close the "
+            msg += f"'{token.keyword}' tag opened in line {token.line_number}."
             raise ShortcodeSyntaxError(msg)
 
         return stack.pop().render(context)
