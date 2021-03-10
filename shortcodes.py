@@ -4,7 +4,7 @@
 
 import re
 
-__version__ = "5.1.0"
+__version__ = "5.1.1"
 
 
 # Shortcode handler functions indexed by keyword.
@@ -12,7 +12,7 @@ global_keywords = {}
 
 
 # End-words for block-scoped shortcodes.
-global_endwords = []
+global_endwords = set()
 
 
 # Decorator function for globally registering shortcode handlers.
@@ -21,7 +21,7 @@ def register(keyword, endword=None):
     def register_function(func):
         global_keywords[keyword] = (func, endword)
         if endword:
-            global_endwords.append(endword)
+            global_endwords.add(endword)
         return func
 
     return register_function
@@ -162,7 +162,7 @@ class Parser:
     def register(self, func, keyword, endword=None):
         self.keywords[keyword] = (func, endword)
         if endword:
-            self.endwords.append(endword)
+            self.endwords.add(endword)
 
     def parse(self, text, context=None):
         if not self.start in text:
