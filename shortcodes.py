@@ -4,7 +4,7 @@
 
 import re
 
-__version__ = "5.1.1"
+__version__ = "5.2.0"
 
 
 # Shortcode handler functions indexed by keyword.
@@ -147,17 +147,20 @@ class BlockShortcode(Shortcode):
 
 
 # A Parser instance parses input text and renders shortcodes. A single Parser
-# instance can parse an unlimited number of input strings. Note that the
-# parse() method accepts an optional arbitrary context object which it passes
-# on to each shortcode's handler function.
+# instance can parse an unlimited number of input strings. Note that the parse()
+# method accepts an optional arbitrary context object which it passes on to each
+# shortcode's handler function.
+#
+# If the `inherit_globals` parameter is true, the parser will inherit a copy of
+# the set of globally-registered shortcodes at the moment of instantiation.
 class Parser:
 
-    def __init__(self, start='[%', end='%]', esc='\\'):
+    def __init__(self, start='[%', end='%]', esc='\\', inherit_globals=True):
         self.start = start
         self.end = end
         self.esc_start = esc + start
-        self.keywords = global_keywords.copy()
-        self.endwords = global_endwords.copy()
+        self.keywords = global_keywords.copy() if inherit_globals else {}
+        self.endwords = global_endwords.copy() if inherit_globals else set()
 
     def register(self, func, keyword, endword=None):
         self.keywords[keyword] = (func, endword)
