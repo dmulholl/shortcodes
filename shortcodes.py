@@ -153,14 +153,20 @@ class BlockShortcode(Shortcode):
 #
 # If the `inherit_globals` parameter is true, the parser will inherit a copy of
 # the set of globally-registered shortcodes at the moment of instantiation.
+#
+# If `ignore_unknown` is true, unknown shortcodes are ignored. (This is useful
+# when using the parser to extract information rather than format text.) If this
+# parameter is false (the default), unknown shortcodes cause an error.
 class Parser:
 
-    def __init__(self, start='[%', end='%]', esc='\\', inherit_globals=True):
+    def __init__(self, start='[%', end='%]', esc='\\', inherit_globals=True,
+                 ignore_unknown=False):
         self.start = start
         self.end = end
         self.esc_start = esc + start
         self.keywords = global_keywords.copy() if inherit_globals else {}
         self.endwords = global_endwords.copy() if inherit_globals else set()
+        self.ignore_unknown = ignore_unknown
 
     def register(self, func, keyword, endword=None):
         self.keywords[keyword] = (func, endword)
@@ -202,6 +208,8 @@ class Parser:
             elif token.keyword == '':
                 msg = f"Empty shortcode tag in line {token.line_number}."
                 raise ShortcodeSyntaxError(msg)
+            elif self.ignore_unknown:
+                pass
             else:
                 msg = f"Unrecognised shortcode tag '{token.keyword}' "
                 msg += f"in line {token.line_number}."
