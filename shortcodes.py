@@ -4,14 +4,14 @@
 
 import re
 
-__version__ = "5.2.0"
+__version__ = "5.3.0"
 
 
-# Shortcode handler functions indexed by keyword.
+# Globally-registered handler functions indexed by keyword.
 global_keywords = {}
 
 
-# End-words for block-scoped shortcodes.
+# The set of all end-words for globally-registered block-scoped shortcodes.
 global_endwords = set()
 
 
@@ -301,4 +301,3 @@ class Lexer:
             self.advance()
         text = self.text[start_index:self.index]
         self.tokens.append(Token("TEXT", text, start_line_number))
-
