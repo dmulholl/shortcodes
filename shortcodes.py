@@ -1,10 +1,6 @@
-# ------------------------------------------------------------------------------
-# A library for parsing customizable Wordpress-style shortcodes.
-# ------------------------------------------------------------------------------
-
 import re
 
-__version__ = "5.3.0"
+__version__ = "5.4.0"
 
 
 # Globally-registered handler functions indexed by keyword.
@@ -27,9 +23,9 @@ def register(keyword, endword=None):
     return register_function
 
 
-# ------------------------------------------------------------------------------
-# Exception classes.
-# ------------------------------------------------------------------------------
+# ------------------- #
+#  Exception Classes  #
+# ------------------- #
 
 
 # Base class for all exceptions raised by the library.
@@ -47,9 +43,9 @@ class ShortcodeRenderingError(ShortcodeError):
     pass
 
 
-# ------------------------------------------------------------------------------
-# AST Nodes.
-# ------------------------------------------------------------------------------
+# ----------- #
+#  AST Nodes  #
+# ----------- #
 
 
 # Input text is parsed into a tree of Node instances.
@@ -141,9 +137,9 @@ class BlockShortcode(Shortcode):
             raise ShortcodeRenderingError(msg) from ex
 
 
-# ------------------------------------------------------------------------------
-# Parser.
-# ------------------------------------------------------------------------------
+# -------- #
+#  Parser  #
+# -------- #
 
 
 # A Parser instance parses input text and renders shortcodes. A single Parser
@@ -154,13 +150,11 @@ class BlockShortcode(Shortcode):
 # If the `inherit_globals` parameter is true, the parser will inherit a copy of
 # the set of globally-registered shortcodes at the moment of instantiation.
 #
-# If `ignore_unknown` is true, unknown shortcodes are ignored. (This is useful
-# when using the parser to extract information rather than format text.) If this
-# parameter is false (the default), unknown shortcodes cause an error.
+# If `ignore_unknown` is true, unknown shortcodes are ignored. If this parameter
+# is false (the default), unknown shortcodes cause an error.
 class Parser:
 
-    def __init__(self, start='[%', end='%]', esc='\\', inherit_globals=True,
-                 ignore_unknown=False):
+    def __init__(self, start='[%', end='%]', esc='\\', inherit_globals=True, ignore_unknown=False):
         self.start = start
         self.end = end
         self.esc_start = esc + start
@@ -209,7 +203,7 @@ class Parser:
                 msg = f"Empty shortcode tag in line {token.line_number}."
                 raise ShortcodeSyntaxError(msg)
             elif self.ignore_unknown:
-                pass
+                stack[-1].children.append(Text(token.raw_text))
             else:
                 msg = f"Unrecognised shortcode tag '{token.keyword}' "
                 msg += f"in line {token.line_number}."
@@ -225,18 +219,19 @@ class Parser:
         return stack.pop().render(context)
 
 
-# ------------------------------------------------------------------------------
-# Lexer.
-# ------------------------------------------------------------------------------
+# ------- #
+#  Lexer  #
+# ------- #
 
 
 class Token:
 
-    def __init__(self, token_type, token_text, line_number):
+    def __init__(self, token_type, token_text, raw_text, line_number):
         words = token_text.split()
         self.keyword = words[0] if words else ''
         self.type = token_type
         self.text = token_text
+        self.raw_text = raw_text
         self.line_number = line_number
 
     def __str__(self):
@@ -276,7 +271,7 @@ class Lexer:
 
     def read_escaped_tag_delimiter(self):
         self.index += len(self.esc_start)
-        self.tokens.append(Token("TEXT", self.start, self.line_number))
+        self.tokens.append(Token("TEXT", self.start, self.esc_start, self.line_number))
 
     def read_tag(self):
         self.index += len(self.start)
@@ -285,7 +280,8 @@ class Lexer:
         while self.index < len(self.text):
             if self.match(self.end):
                 text = self.text[start_index:self.index].strip()
-                self.tokens.append(Token("TAG", text, start_line_number))
+                raw_text = self.text[start_index-len(self.start):self.index+len(self.end)]
+                self.tokens.append(Token("TAG", text, raw_text, start_line_number))
                 self.index += len(self.end)
                 return
             self.advance()
@@ -300,4 +296,4 @@ class Lexer:
                 break
             self.advance()
         text = self.text[start_index:self.index]
-        self.tokens.append(Token("TEXT", text, start_line_number))
+        self.tokens.append(Token("TEXT", text, text, start_line_number))

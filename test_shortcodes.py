@@ -197,3 +197,32 @@ def test_nonascii_args():
     text = '[% args pøs0 k€¥="välué" %]'
     rendered = shortcodes.Parser().parse(text)
     assert rendered == 'pøs0|k€¥:välué'
+
+
+# ------------------------------------------------------------------------------
+# Test ignoring unknown tags.
+# ------------------------------------------------------------------------------
+
+
+def test_unknown_atomic_tag():
+    text = 'abc [% unknown %] def'
+    rendered = shortcodes.Parser(ignore_unknown=True).parse(text)
+    assert rendered == 'abc [% unknown %] def'
+
+
+def test_unknown_atomic_tag_with_args():
+    text = 'abc [% unknown foo key=bar %] def'
+    rendered = shortcodes.Parser(ignore_unknown=True).parse(text)
+    assert rendered == 'abc [% unknown foo key=bar %] def'
+
+
+def test_unknown_block_tag():
+    text = 'abc [% unknown %] def [% endunknown %] ghi'
+    rendered = shortcodes.Parser(ignore_unknown=True).parse(text)
+    assert rendered == 'abc [% unknown %] def [% endunknown %] ghi'
+
+
+def test_unknown_block_tag_with_args():
+    text = 'abc [% unknown foo key=bar %] def [% endunknown %] ghi'
+    rendered = shortcodes.Parser(ignore_unknown=True).parse(text)
+    assert rendered == 'abc [% unknown foo key=bar %] def [% endunknown %] ghi'
