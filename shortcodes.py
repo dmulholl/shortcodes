@@ -1,6 +1,6 @@
-import re
+import shlex
 
-__version__ = "5.4.0"
+__version__ = "6.0.0"
 
 
 # Globally-registered handler functions indexed by keyword.
@@ -12,10 +12,10 @@ global_endwords = set()
 
 
 # Decorator function for globally registering shortcode handlers.
-def register(keyword, endword=None):
+def register(keyword, endword=None, pargs=True, kwargs=True):
 
     def register_function(func):
-        global_keywords[keyword] = (func, endword)
+        global_keywords[keyword] = (func, endword, pargs, kwargs)
         if endword:
             global_endwords.add(endword)
         return func
@@ -71,38 +71,25 @@ class Text(Node):
 # Base class for atomic and block-scoped shortcodes.
 class Shortcode(Node):
 
-    # Regex for parsing the shortcode's arguments.
-    re_args = re.compile(r"""
-        (?:([^\s'"=]+)=)?
-        (
-            "((?:[^\\"]|\\.)*)"
-            |
-            '((?:[^\\']|\\.)*)'
-        )
-        |
-        ([^\s'"=]+)=(\S+)
-        |
-        (\S+)
-    """, re.VERBOSE)
-
-    def __init__(self, token, handler_function):
+    def __init__(self, token, handler_function, allow_pargs=True, allow_kwargs=True):
         self.token = token
         self.handler = handler_function
+        self.allow_kwargs = allow_kwargs
+        self.allow_pargs = allow_pargs
         self.pargs, self.kwargs = self.parse_args(token.text[len(token.keyword):])
         self.children = []
 
     def parse_args(self, argstring):
         pargs, kwargs = [], {}
-        for match in self.re_args.finditer(argstring):
-            if match.group(2) or match.group(5):
-                key = match.group(1) or match.group(5)
-                value = match.group(3) or match.group(4) or match.group(6)
-                if key:
-                    kwargs[key] = value
-                else:
-                    pargs.append(value)
+        parsed_args = shlex.split(argstring)
+        for arg in parsed_args:
+            if self.allow_kwargs and '=' in arg:
+                key, value = arg.split('=')
+                kwargs[key] = value
             else:
-                pargs.append(match.group(7))
+                if not self.allow_pargs:
+                    raise ShortcodeRenderingError("position arguments are not allowed for this shortcode")
+                pargs.append(arg)
         return pargs, kwargs
 
 
@@ -162,8 +149,10 @@ class Parser:
         self.endwords = global_endwords.copy() if inherit_globals else set()
         self.ignore_unknown = ignore_unknown
 
-    def register(self, func, keyword, endword=None):
-        self.keywords[keyword] = (func, endword)
+    def register(self, func, keyword, endword=None, allow_pargs=True, allow_kwargs=True):
+        if not allow_pargs and not allow_kwargs:
+            raise ShortcodeError("either positional arguments or keyword arguments must be allowed")
+        self.keywords[keyword] = (func, endword, allow_pargs, allow_kwargs)
         if endword:
             self.endwords.add(endword)
 
@@ -179,14 +168,14 @@ class Parser:
             if token.type == "TEXT":
                 stack[-1].children.append(Text(token.text))
             elif token.keyword in self.keywords:
-                handler, endword = self.keywords[token.keyword]
+                handler, endword, allow_pargs, allow_kwargs = self.keywords[token.keyword]
                 if endword:
-                    node = BlockShortcode(token, handler)
+                    node = BlockShortcode(token, handler, allow_pargs, allow_kwargs)
                     stack[-1].children.append(node)
                     stack.append(node)
                     expecting.append(endword)
                 else:
-                    node = AtomicShortcode(token, handler)
+                    node = AtomicShortcode(token, handler, allow_pargs, allow_kwargs)
                     stack[-1].children.append(node)
             elif token.keyword in self.endwords:
                 if len(expecting) == 0:
