@@ -84,7 +84,7 @@ class Shortcode(Node):
         parsed_args = shlex.split(argstring)
         for arg in parsed_args:
             if self.allow_kwargs and '=' in arg:
-                key, value = arg.split('=')
+                key, value = arg.split('=', 1)
                 kwargs[key] = value
             else:
                 if not self.allow_pargs:
