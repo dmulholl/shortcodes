@@ -180,6 +180,18 @@ def test_wrapping_and_text_mix():
     assert rendered == '<div>..<p>.bar.</p>..</div>'
 
 
+def test_only_kwargs():
+    parser = shortcodes.Parser()
+    parser.register(lambda pargs, kwargs, context: f"{kwargs}", 'onlykwargs', allow_pargs=False)
+    assert parser.parse("[%onlykwargs key=value %]")
+
+
+def test_only_pargs():
+    parser = shortcodes.Parser()
+    parser.register(lambda pargs, kwargs, context: pargs, 'onlypargs', allow_kwargs=False)
+    assert parser.parse("[%onlypargs postion=arg1 position-arg2 %]") == "['postion=arg1', 'position-arg2']"
+
+
 # ------------------------------------------------------------------------------
 # Test context object support.
 # ------------------------------------------------------------------------------
@@ -234,6 +246,18 @@ def test_unbalanced_tags_exception():
     text = '[% wrap %] missing end tag...'
     with pytest.raises(shortcodes.ShortcodeSyntaxError):
         shortcodes.Parser().parse(text)
+
+def test_pargs_not_allowed():
+    parser = shortcodes.Parser()
+    parser.register(lambda pargs, kwargs, context: f"{kwargs}", 'onlykwargs', allow_pargs=False)
+    assert parser.parse("[%onlykwargs key=value %]")
+    with pytest.raises(shortcodes.ShortcodeRenderingError):
+        parser.parse("[%onlykwargs positional-arg %]")
+
+def test_both_pargs_and_kwargs_disabled():
+    parser = shortcodes.Parser()
+    with pytest.raises(shortcodes.ShortcodeError):
+        parser.register(lambda pargs, kwargs, context: f"{kwargs}", 'onlykwargs', allow_pargs=False, allow_kwargs=False)
 
 
 # ------------------------------------------------------------------------------
