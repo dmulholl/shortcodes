@@ -91,16 +91,64 @@ def test_double_escaped_shortcode():
 # ------------------------------------------------------------------------------
 
 
-def test_args_with_double_quoted_strings():
+def test_shortcode_with_single_quoted_args():
+    text = "[% args arg1 'arg 2' key1=arg3 key2='arg 4' %]"
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|arg 2|key1:arg3|key2:arg 4'
+
+
+def test_shortcode_with_double_quoted_args():
     text = '[% args arg1 "arg 2" key1=arg3 key2="arg 4" %]'
     rendered = shortcodes.Parser().parse(text)
     assert rendered == 'arg1|arg 2|key1:arg3|key2:arg 4'
 
 
-def test_args_with_single_quoted_strings():
-    text = "[% args arg1 'arg 2' key1=arg3 key2='arg 4' %]"
+def test_positional_arg_with_single_quoted_equals_symbol():
+    text = "[% args arg1 'foo=bar' %]"
     rendered = shortcodes.Parser().parse(text)
-    assert rendered == 'arg1|arg 2|key1:arg3|key2:arg 4'
+    assert rendered == 'arg1|foo=bar'
+
+
+def test_positional_arg_with_double_quoted_equals_symbol():
+    text = '[% args arg1 "foo=bar" %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo=bar'
+
+
+def test_single_quoted_positional_arg_with_multiple_equals_symbols():
+    text = "[% args arg1 'foo=bar=baz' %]"
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo=bar=baz'
+
+
+def test_double_quoted_positional_arg_with_multiple_equals_symbols():
+    text = '[% args arg1 "foo=bar=baz" %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo=bar=baz'
+
+
+def test_single_quoted_keyword_arg_with_equals_symbol():
+    text= "[% args arg1 foo='bar=baz' %]"
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo:bar=baz'
+
+
+def test_double_quoted_keyword_arg_with_equals_symbol():
+    text= '[% args arg1 foo="bar=baz" %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo:bar=baz'
+
+
+def test_single_quoted_keyword_arg_with_equals_symbol_and_spaces():
+    text= "[% args arg1 foo='bar= baz ' %]"
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo:bar= baz '
+
+
+def test_double_quoted_keyword_arg_with_equals_symbol_and_spaces():
+    text= '[% args arg1 foo="bar= baz " %]'
+    rendered = shortcodes.Parser().parse(text)
+    assert rendered == 'arg1|foo:bar= baz '
 
 
 # ------------------------------------------------------------------------------
